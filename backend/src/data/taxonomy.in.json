@@ -1,0 +1,90 @@
+{
+  "name": "Root",
+  "slug": "root",
+  "children": [
+    {
+      "name": "Services",
+      "slug": "services",
+      "children": [
+        {
+          "name": "Shoemaking & Repair",
+          "slug": "shoemaking-repair",
+          "children": [
+            {
+              "name": "Cobbler / Shoe Repair",
+              "slug": "cobbler-shoe-repair",
+              "suggestedAliases": ["cobbler", "shoe repair", "sole replacement", "heel repair", "mochi"],
+              "attributes": [
+                {"key": "service_types", "label": "Services Provided", "type": "tags", "options": ["sole_replacement","heel_repair","stitching","polishing"]},
+                {"key": "home_service", "label": "Home Service Available", "type": "boolean"},
+                {"key": "typical_price_range", "label": "Typical Price Range (INR)", "type": "range", "min": 50, "max": 2000}
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Key Cutting / Locksmith",
+          "slug": "key-cutting-locksmith",
+          "suggestedAliases": ["key maker", "key cutting", "chabi wala", "locksmith"],
+          "attributes": [
+            {"key": "service_types", "label": "Services Provided", "type": "tags", "options": ["duplicate_key","lock_repair","car_key"]},
+            {"key": "home_service", "label": "Home Service Available", "type": "boolean"}
+          ]
+        },
+        {
+          "name": "Tailoring & Alterations",
+          "slug": "tailoring-alterations",
+          "suggestedAliases": ["tailor", "alterations", "darzi"],
+          "attributes": [
+            {"key": "service_types", "label": "Services Provided", "type": "tags", "options": ["alterations","custom_stitching","blouse","pants_hem"]},
+            {"key": "languages_spoken", "label": "Languages Spoken", "type": "tags", "options": ["en","hi","mr","bn","ta","te"]}
+          ]
+        },
+        {
+          "name": "Electronics Repair",
+          "slug": "electronics-repair",
+          "suggestedAliases": ["mobile repair", "laptop repair", "tv repair"],
+          "attributes": [
+            {"key": "device_types", "label": "Device Types", "type": "tags", "options": ["mobile","laptop","tv","ac"]}
+          ]
+        },
+        {
+          "name": "Mobile Recharge / SIM Dealers",
+          "slug": "mobile-recharge-sim",
+          "suggestedAliases": ["mobile recharge", "sim", "prepaid", "postpaid"],
+          "attributes": [
+            {"key": "operators", "label": "Operators", "type": "tags", "options": ["Airtel","Jio","Vi","BSNL"]}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Commerce",
+      "slug": "commerce",
+      "children": [
+        {
+          "name": "Kirana / Grocery",
+          "slug": "kirana-grocery",
+          "suggestedAliases": ["kirana", "grocery", "provision store"],
+          "attributes": [
+            {"key": "delivery_available", "label": "Delivery Available", "type": "boolean"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Food",
+      "slug": "food",
+      "children": [
+        {
+          "name": "Street Food",
+          "slug": "street-food",
+          "suggestedAliases": ["panipuri","pani puri","golgappa","chaat","bhel"],
+          "attributes": [
+            {"key": "veg_only", "label": "Vegetarian Only", "type": "boolean"}
+          ]
+        }
+      ]
+    }
+  ]
+}
