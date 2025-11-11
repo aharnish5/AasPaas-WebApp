@@ -1,16 +1,16 @@
 # Render backend deployment Dockerfile (multi-stage for production)
 # Using node:20-alpine for smaller image and long term support
-FROM node:20-alpine AS build
+FROM node:20-alpine AS base
 
 WORKDIR /app
 
-# Install dependencies (production only) early for better layer caching
 COPY backend/package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
-# Copy backend source
 COPY backend ./backend
 WORKDIR /app/backend
+
+ENV NODE_ENV=production
 
 # Expose port expected by Render (set via PORT env variable)
 EXPOSE 5000
