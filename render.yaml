@@ -17,6 +17,9 @@ services:
 			# Set this to your Render service URL (https://<your-service>.onrender.com)
 			- key: FRONTEND_URL
 				value: https://your-service.onrender.com
+					# Base URL used to generate absolute image URLs when using local storage
+					- key: PUBLIC_BASE_URL
+						value: https://your-service.onrender.com
 			# Mongo connection (use Render's managed Mongo or Mongo Atlas URI)
 			- key: MONGODB_URI
 				sync: false
