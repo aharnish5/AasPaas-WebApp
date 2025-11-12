@@ -58,8 +58,7 @@ app.use(cookieParser());
 // Serve locally stored uploads if in local mode (no S3 bucket configured)
 if (!process.env.S3_BUCKET) {
   const uploadsPath = path.resolve('uploads');
-  // Serve under both /uploads and /media (use /media for ad-block friendly URLs)
-  app.use(['/uploads', '/media'], express.static(uploadsPath));
+  app.use('/uploads', express.static(uploadsPath));
   logger.info(`Serving local uploads from ${uploadsPath}`);
 }
 

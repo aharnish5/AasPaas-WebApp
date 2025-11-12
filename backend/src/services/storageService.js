@@ -65,11 +65,10 @@ export const uploadImage = async (imageBuffer, folder = 'uploads', options = {})
       // Local disk fallback for development when S3 is not configured
       const destDir = path.join(LOCAL_UPLOAD_ROOT, folder);
       await fs.mkdir(destDir, { recursive: true });
-  const destPath = path.join(LOCAL_UPLOAD_ROOT, key);
+      const destPath = path.join(LOCAL_UPLOAD_ROOT, key);
       await fs.writeFile(destPath, optimizedBuffer);
       const urlPath = key.replace(/\\/g, '/');
-  // Prefer /media path to avoid aggressive ad blockers matching '.../uploads'
-  const url = `${BASE_URL}/media/${urlPath}`;
+      const url = `${BASE_URL}/uploads/${urlPath}`;
       logger.info(`Image saved locally: ${destPath}`);
       return { url, key, bucket: 'local' };
     } else {

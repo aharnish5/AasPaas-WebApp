@@ -51,22 +51,12 @@ export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValu
   }
 })
 
-// Bootstrap from localStorage for faster perceived loads
-let bootUser = null
-try {
-  const raw = localStorage.getItem('user')
-  if (raw) bootUser = JSON.parse(raw)
-} catch {}
-
 const initialState = {
-  user: bootUser,
+  user: null,
   token: localStorage.getItem('accessToken'),
-  // Optimistically treat as authenticated if we have either a token or a bootstrapped user;
-  // server will confirm on getMe/refresh.
-  isAuthenticated: !!(bootUser || localStorage.getItem('accessToken')),
+  isAuthenticated: false,
   loading: false,
   error: null,
-  sessionHydrated: false, // flips true after getMe resolves (success or fail)
 }
 
 const authSlice = createSlice({
@@ -95,7 +85,6 @@ const authSlice = createSlice({
         state.token = action.payload.accessToken
         state.isAuthenticated = true
         state.error = null
-        try { localStorage.setItem('user', JSON.stringify(action.payload.user)) } catch {}
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
@@ -113,7 +102,6 @@ const authSlice = createSlice({
         state.token = action.payload.accessToken
         state.isAuthenticated = true
         state.error = null
-        try { localStorage.setItem('user', JSON.stringify(action.payload.user)) } catch {}
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false
@@ -125,17 +113,13 @@ const authSlice = createSlice({
         state.loading = false
         state.user = action.payload
         state.isAuthenticated = true
-        state.sessionHydrated = true
-        try { localStorage.setItem('user', JSON.stringify(action.payload)) } catch {}
       })
       .addCase(getMe.rejected, (state) => {
         state.loading = false
         state.user = null
         state.isAuthenticated = false
         state.token = null
-        state.sessionHydrated = true
         localStorage.removeItem('accessToken')
-        localStorage.removeItem('user')
       })
       // Ensure loading is set while fetching current user
       .addCase(getMe.pending, (state) => {
@@ -147,8 +131,6 @@ const authSlice = createSlice({
         state.user = null
         state.token = null
         state.isAuthenticated = false
-        state.sessionHydrated = true
-        localStorage.removeItem('user')
       })
   },
 })
