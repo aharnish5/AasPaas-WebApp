@@ -31,12 +31,16 @@ const allowedOrigins = [
   'http://localhost:5173', // Vite default if port not overridden
   'http://127.0.0.1:3000',
   'http://127.0.0.1:5173',
-];
+]
+  // Normalize any trailing slashes in env-provided URLs
+  .filter(Boolean)
+  .map((o) => (typeof o === 'string' ? o.replace(/\/$/, '') : o));
 
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (e.g. mobile apps, curl) or if origin is in list
-    if (!origin || allowedOrigins.includes(origin)) {
+    const normalized = origin ? origin.replace(/\/$/, '') : origin;
+    if (!normalized || allowedOrigins.includes(normalized)) {
       return callback(null, true);
     }
     return callback(new Error(`CORS blocked origin: ${origin}`));

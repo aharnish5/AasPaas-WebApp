@@ -15,7 +15,14 @@ const s3 = new AWS.S3({
 const BUCKET_NAME = process.env.S3_BUCKET;
 const USE_LOCAL = !BUCKET_NAME;
 const LOCAL_UPLOAD_ROOT = process.env.LOCAL_UPLOAD_ROOT || path.resolve('uploads');
-const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+// Prefer explicit PUBLIC/BASE URL, else Render-provided external URL, else localhost
+const RAW_BASE_URL =
+  process.env.PUBLIC_BASE_URL ||
+  process.env.BASE_URL ||
+  process.env.RENDER_EXTERNAL_URL ||
+  `http://localhost:${process.env.PORT || 5000}`;
+// Normalize: drop trailing slash to avoid double // in generated URLs
+const BASE_URL = typeof RAW_BASE_URL === 'string' ? RAW_BASE_URL.replace(/\/$/, '') : RAW_BASE_URL;
 
 /**
  * Upload image to S3 with optimization
