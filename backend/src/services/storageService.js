@@ -15,7 +15,10 @@ const s3 = new AWS.S3({
 const BUCKET_NAME = process.env.S3_BUCKET;
 const USE_LOCAL = !BUCKET_NAME;
 const LOCAL_UPLOAD_ROOT = process.env.LOCAL_UPLOAD_ROOT || path.resolve('uploads');
-const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+// Prefer explicitly provided public URL; if not set, we will emit relative URLs
+const RAW_PUBLIC_BASE =
+  process.env.PUBLIC_BASE_URL || process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || '';
+const BASE_URL = RAW_PUBLIC_BASE ? RAW_PUBLIC_BASE.replace(/\/$/, '') : undefined;
 
 /**
  * Upload image to S3 with optimization
@@ -60,8 +63,8 @@ export const uploadImage = async (imageBuffer, folder = 'uploads', options = {})
       await fs.mkdir(destDir, { recursive: true });
       const destPath = path.join(LOCAL_UPLOAD_ROOT, key);
       await fs.writeFile(destPath, optimizedBuffer);
-      const urlPath = key.replace(/\\/g, '/');
-      const url = `${BASE_URL}/uploads/${urlPath}`;
+  const urlPath = key.replace(/\\/g, '/');
+  const url = BASE_URL ? `${BASE_URL}/uploads/${urlPath}` : `/uploads/${urlPath}`;
       logger.info(`Image saved locally: ${destPath}`);
       return { url, key, bucket: 'local' };
     } else {
@@ -146,7 +149,9 @@ export const moveImage = async (sourceKey, destinationFolder) => {
           throw err;
         }
       }
-      const url = `${BASE_URL}/uploads/${newKey.replace(/\\/g, '/')}`;
+      const url = BASE_URL
+        ? `${BASE_URL}/uploads/${newKey.replace(/\\/g, '/')}`
+        : `/uploads/${newKey.replace(/\\/g, '/')}`;
       logger.info(`Image moved locally from ${sourceKey} to ${newKey}`);
       return { url, key: newKey };
     } else {
