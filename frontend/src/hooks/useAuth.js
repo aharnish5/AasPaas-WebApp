@@ -4,7 +4,7 @@ import { getMe } from '../store/slices/authSlice'
 
 export const useAuth = () => {
   const dispatch = useDispatch()
-  const { user, isAuthenticated, loading, token } = useSelector((state) => state.auth)
+  const { user, isAuthenticated, loading, token, sessionHydrated } = useSelector((state) => state.auth)
   const bootstrapped = useRef(false)
 
   useEffect(() => {
@@ -22,6 +22,7 @@ export const useAuth = () => {
     token,
     isAuthenticated,
     loading,
+    sessionHydrated,
     role: user?.role,
   }
 }
