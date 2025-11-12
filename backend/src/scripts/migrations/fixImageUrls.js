@@ -33,14 +33,23 @@ function rewriteToBase(url) {
   try {
     // Only rewrite local-uploads style URLs
     const uploadsIndex = url.indexOf('/uploads/');
-    if (uploadsIndex === -1) return null; // not an uploads URL
+    const mediaIndex = url.indexOf('/media/');
+    if (uploadsIndex === -1 && mediaIndex === -1) return null; // not a local URL
 
-    // If it already starts with BASE, skip
-    if (url.startsWith(`${BASE}/uploads/`)) return null;
+    // If it already starts with BASE for either path, skip
+    if (url.startsWith(`${BASE}/uploads/`) || url.startsWith(`${BASE}/media/`)) return null;
 
     // Extract the path from /uploads/ onwards
-    const pathFromUploads = url.slice(uploadsIndex);
-    return `${BASE}${pathFromUploads}`;
+    const idx = uploadsIndex !== -1 ? uploadsIndex : mediaIndex;
+    let pathFrom = url.slice(idx);
+
+    // Optionally normalize legacy '/uploads/' to '/media/' to avoid ad blockers
+    const forceMedia = (process.env.APPLY_MEDIA_PATH === 'true');
+    if (forceMedia && pathFrom.startsWith('/uploads/')) {
+      pathFrom = pathFrom.replace(/^\/uploads\//, '/media/');
+    }
+
+    return `${BASE}${pathFrom}`;
   } catch (e) {
     return null;
   }
