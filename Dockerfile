@@ -6,7 +6,7 @@ WORKDIR /frontend
 
 # Install deps and build
 COPY frontend/package*.json ./
-RUN npm ci
+RUN npm install
 COPY frontend/ .
 RUN npm run build
 
@@ -18,7 +18,8 @@ ENV NODE_ENV=production
 
 # Install backend dependencies
 COPY backend/package*.json ./
-RUN npm ci --only=production
+RUN apk add --no-cache libc6-compat \
+	&& npm install --omit=dev
 
 # Copy backend source
 COPY backend/. .
