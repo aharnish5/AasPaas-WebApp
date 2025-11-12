@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Prefer same-origin '/api' by default so Docker/Render single-service works without extra config.
+// Allow override via VITE_API_URL for local dev or split deployments.
+const API_URL = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim()) || '/api';
 
 // Create axios instance
 const api = axios.create({

@@ -24,6 +24,9 @@ dotenv.config();
 
 const app = express();
 
+// Behind Render/Proxies: trust X-Forwarded-* so secure cookies work over HTTPS
+app.set('trust proxy', 1);
+
 // CORS configuration
 // Support multiple local dev origins (localhost + 127.0.0.1, different ports) and env FRONTEND_URL.
 const allowedOrigins = [
