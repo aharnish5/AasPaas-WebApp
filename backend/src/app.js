@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import logger from './config/logger.js';
 import path from 'path';
+import fs from 'fs';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -31,16 +32,17 @@ const allowedOrigins = [
   'http://localhost:5173', // Vite default if port not overridden
   'http://127.0.0.1:3000',
   'http://127.0.0.1:5173',
-]
-  // Normalize any trailing slashes in env-provided URLs
-  .filter(Boolean)
-  .map((o) => (typeof o === 'string' ? o.replace(/\/$/, '') : o));
+  process.env.RENDER_EXTERNAL_URL, // Render sets this in some contexts
+].filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
+    // In single-service deployments (frontend + backend same domain), allow any origin and let browser same-origin rules apply
+    if (process.env.CORS_SAME_SERVICE === 'true') {
+      return callback(null, true);
+    }
     // Allow requests with no origin (e.g. mobile apps, curl) or if origin is in list
-    const normalized = origin ? origin.replace(/\/$/, '') : origin;
-    if (!normalized || allowedOrigins.includes(normalized)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error(`CORS blocked origin: ${origin}`));
@@ -83,6 +85,22 @@ app.use('/api/shops', analyticsRoutes); // Track view route
 app.use('/api/vendors', analyticsRoutes); // Vendor analytics route
 app.use('/api/location', locationRoutes);
 app.use('/api/categories', categoryRoutes); // Admin category management
+
+// Serve frontend (SPA) if built assets are present
+const spaDir = process.env.FRONTEND_DIST_DIR || path.resolve('frontend-dist');
+if (fs.existsSync(spaDir)) {
+  app.use(express.static(spaDir));
+  const indexFile = path.join(spaDir, 'index.html');
+  // SPA fallback for non-API routes
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    if (fs.existsSync(indexFile)) {
+      return res.sendFile(indexFile);
+    }
+    return next();
+  });
+  logger.info(`Serving SPA from ${spaDir}`);
+}
 
 // Error handling middleware (must be last)
 app.use(notFound);

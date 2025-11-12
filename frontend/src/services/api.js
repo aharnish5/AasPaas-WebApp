@@ -1,10 +1,6 @@
 import axios from 'axios';
 
-// Prefer explicit env, fall back to alternative key, then same-origin /api
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_API_BASE ||
-  (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'http://localhost:5000/api');
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const api = axios.create({
