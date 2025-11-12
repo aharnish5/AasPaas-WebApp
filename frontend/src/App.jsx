@@ -59,35 +59,25 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Protected Customer Routes */}
-          <Route
-            path="/customer/*"
-            element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<CustomerFeed />} />
-            <Route path="favorites" element={<Favorites />} />
-            <Route path="profile" element={<CustomerProfile />} />
+          <Route element={<ProtectedRoute allowedRoles={['customer']} />}> 
+            <Route path="/customer/*" element={<CustomerLayout />}> 
+              <Route index element={<CustomerFeed />} />
+              <Route path="favorites" element={<Favorites />} />
+              <Route path="profile" element={<CustomerProfile />} />
+            </Route>
           </Route>
 
           {/* Protected Vendor Routes */}
-          <Route
-            path="/vendor/*"
-            element={
-              <ProtectedRoute allowedRoles={['vendor']}>
-                <VendorLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<VendorDashboard />} />
-            <Route path="my-shop" element={<VendorShops />} />
-            <Route path="my-shop/create" element={<VendorShop />} />
-            <Route path="my-shop/edit/:shopId" element={<VendorShop />} />
-            <Route path="analytics" element={<VendorAnalytics />} />
-            <Route path="profile" element={<VendorProfile />} />
-            <Route path="settings" element={<VendorSettings />} />
+          <Route element={<ProtectedRoute allowedRoles={['vendor']} />}> 
+            <Route path="/vendor/*" element={<VendorLayout />}> 
+              <Route index element={<VendorDashboard />} />
+              <Route path="my-shop" element={<VendorShops />} />
+              <Route path="my-shop/create" element={<VendorShop />} />
+              <Route path="my-shop/edit/:shopId" element={<VendorShop />} />
+              <Route path="analytics" element={<VendorAnalytics />} />
+              <Route path="profile" element={<VendorProfile />} />
+              <Route path="settings" element={<VendorSettings />} />
+            </Route>
           </Route>
         </Routes>
       </main>
