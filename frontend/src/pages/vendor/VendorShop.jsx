@@ -524,7 +524,7 @@ const VendorShop = () => {
                         document.body.removeChild(input)
                       }, 2000)
                     }}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium border border-primary text-primary bg-white hover:bg-primary hover:text-white transition focus:outline-none focus:ring focus:ring-primary/30"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium border border-[color:var(--color-border)] text-[color:var(--color-primary)] bg-[color:var(--color-surface)] hover:bg-[color:var(--color-primary)] hover:text-[color:var(--color-primary-foreground)] transition focus:outline-none focus:ring focus:ring-[color:var(--color-ring)]"
                     aria-label="Open camera to capture a photo for AI autofill"
                   >
                     <Camera className="w-4 h-4" /> Camera
@@ -893,13 +893,25 @@ const VendorShop = () => {
                           type="button"
                           key={i}
                           onClick={()=> setBulkDays(prev => prev.includes(i) ? prev.filter(x=>x!==i) : [...prev, i])}
-                          className={`px-2 py-1 rounded text-xs border ${bulkDays.includes(i) ? 'bg-[#0F766E] text-white border-[#0F766E]' : 'bg-white'}`}
+                          className={`px-2 py-1 rounded text-xs border transition-colors ${bulkDays.includes(i)
+                            ? 'bg-[color:var(--color-primary)] text-[color:var(--color-primary-foreground)] border-[color:var(--color-primary)]'
+                            : 'bg-[color:var(--color-surface)] text-text border-[color:var(--color-border)] hover:bg-[color:var(--color-surface-muted)]/70'}`}
                         >{d}</button>
                       ))}
                     </div>
                     <div className="flex items-center gap-2 mt-1">
-                      <input type="checkbox" id="bulkClosed" checked={bulkClosed} onChange={(e)=>setBulkClosed(e.target.checked)} />
-                      <label htmlFor="bulkClosed" className="text-xs">Closed</label>
+                      <button
+                        type="button"
+                        aria-pressed={bulkClosed}
+                        onClick={() => setBulkClosed((v) => !v)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] border shadow-[var(--shadow-xs)] ${bulkClosed
+                          ? 'bg-[color:var(--color-primary)] border-[color:var(--color-primary)] ring-1 ring-black/10 dark:ring-white/10'
+                          : 'bg-[color:var(--color-surface-muted)]/80 border-[color:var(--color-border)]/80'}`}
+                        aria-label="Toggle closed for selected days"
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ring-1 ring-black/10 dark:ring-white/10 ${bulkClosed ? 'translate-x-4' : 'translate-x-1'}`} />
+                      </button>
+                      <span className="text-xs">Closed</span>
                     </div>
                   </div>
                 </div>
@@ -923,12 +935,12 @@ const VendorShop = () => {
                         return { ...prev, hoursPerDay: arr };
                       });
                     }}
-                    className="px-3 py-1.5 rounded bg-[#0F766E] text-white text-xs disabled:opacity-40"
+                    className="px-3 py-1.5 rounded text-xs bg-[color:var(--color-primary)] text-[color:var(--color-primary-foreground)] disabled:opacity-40 shadow-[var(--shadow-xs)] transition hover:-translate-y-[1px]"
                   >Apply to Selected Days</button>
                   <button
                     type="button"
                     onClick={() => { setBulkDays([]); setBulkClosed(false); setBulkHours({ open:'', openMeridiem:'AM', close:'', closeMeridiem:'PM'}); }}
-                    className="px-3 py-1.5 rounded bg-gray-100 text-xs"
+                    className="px-3 py-1.5 rounded text-xs bg-[color:var(--color-surface)] text-text border border-[color:var(--color-border)]"
                   >Reset</button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">Select multiple days then apply shared hours to avoid re-entering the same times.</p>
@@ -946,15 +958,20 @@ const VendorShop = () => {
                   return (
                     <div key={idx} className="grid grid-cols-12 gap-2 items-end">
                       <div className="col-span-12 md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700">{label}</label>
+                        <label className="block text-sm font-medium text-text">{label}</label>
                         <div className="mt-1 flex items-center gap-2">
-                          <input
-                            id={`closed-${idx}`}
-                            type="checkbox"
-                            checked={!!day.closed}
-                            onChange={(e) => updateDay({ closed: e.target.checked })}
-                          />
-                          <label htmlFor={`closed-${idx}`} className="text-sm text-gray-700">Closed</label>
+                          <button
+                            type="button"
+                            aria-pressed={!!day.closed}
+                            onClick={() => updateDay({ closed: !day.closed })}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] border shadow-[var(--shadow-xs)] ${day.closed
+                              ? 'bg-[color:var(--color-primary)] border-[color:var(--color-primary)] ring-1 ring-black/10 dark:ring-white/10'
+                              : 'bg-[color:var(--color-surface-muted)]/80 border-[color:var(--color-border)]/80'}`}
+                            aria-label={`Toggle closed for ${label}`}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ring-1 ring-black/10 dark:ring-white/10 ${day.closed ? 'translate-x-4' : 'translate-x-1'}`} />
+                          </button>
+                          <span className="text-sm text-text">Closed</span>
                         </div>
                       </div>
                       <div className="col-span-6 md:col-span-4">

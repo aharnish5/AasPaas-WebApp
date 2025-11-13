@@ -156,15 +156,25 @@ const VendorShops = () => {
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-[color:var(--color-surface)]/70 px-4 py-2 text-sm">
                     <span className="font-medium text-text">Visibility</span>
-                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
-                      <input
-                        type="checkbox"
-                        className="h-3.5 w-3.5 rounded border-border/80 accent-[color:var(--color-primary)]"
-                        checked={status === 'live'}
-                        onChange={() => toggleLive(shop)}
-                      />
-                      {status === 'live' ? 'Live' : 'Hidden'}
-                    </label>
+                    <div className="inline-flex items-center gap-3">
+                      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
+                        {status === 'live' ? 'Live' : 'Hidden'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleLive(shop)}
+                        aria-pressed={status === 'live'}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)] border shadow-[var(--shadow-xs)] ${status === 'live'
+                          ? 'bg-[color:var(--color-primary)] border-[color:var(--color-primary)] ring-1 ring-black/10 dark:ring-white/10'
+                          : 'bg-[color:var(--color-surface-muted)]/80 border-[color:var(--color-border)]/80'}`}
+                        aria-label="Toggle shop visibility"
+                        title="Toggle shop visibility"
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ring-1 ring-black/10 dark:ring-white/10 ${status === 'live' ? 'translate-x-4' : 'translate-x-1'}`}
+                        />
+                      </button>
+                    </div>
                   </div>
                   <div className="mt-auto flex gap-2">
                     <button

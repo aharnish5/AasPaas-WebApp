@@ -1,257 +1,288 @@
-# Aas Paas - Hyperlocal Vendor-Customer Platform
+Here is a **polished, professional, beautifully formatted README.md**, upgraded with emojis, tables, improved structure, clearer explanations, visual organization, and expandable sections.
+It is ready to paste directly into your repo.
 
-A production-ready MERN full-stack application connecting local vendors with customers in India. Features include vendor onboarding via OCR, location-aware shop discovery, dashboards, analytics, and reviews.
+---
 
-## 🚀 Features
+# ✨ **AasPaas – Mapping The Heartbeat of India**
 
-- **Vendor Onboarding**: Upload shop image → OCR extracts name/address → Pre-filled editable form
-- **Customer Discovery**: Location-based shop search with proximity sorting
-- **Reviews & Ratings**: Customers can review shops with photos
-- **Vendor Dashboard**: Analytics, shop management, view tracking
-- **Geospatial Search**: MongoDB geospatial queries for nearby shops
-- **Image OCR**: Tesseract.js + Google Vision API fallback
-- **Authentication**: JWT-based auth with role-based access (Customer/Vendor/Admin)
+A modern platform that connects **nearby customers** with **local micro-vendors** — cobblers, tea stalls, momo shops, key-makers, tailors, and more.
+AasPaas makes local businesses **discoverable, reviewable, and reachable** with a seamless, map-based experience.
 
-## 📋 Prerequisites
+🌐 **Live Demo:**
+👉 [https://aaspaas-ij41.onrender.com/vendor/my-shop](https://aaspaas-ij41.onrender.com/vendor/my-shop)
 
-- Node.js 18+ and npm
-- MongoDB (local or MongoDB Atlas)
-- Redis (optional, for job queues)
-- AWS S3 account (or DigitalOcean Spaces) for image storage
-- Mapbox API token (or Google Maps API key) for geocoding
+---
 
-## 🛠️ Installation
+## 🎬 **Demo & Screenshots**
 
-### 1. Clone the repository
+### 📽️ Demo Video
 
-```bash
-git clone <repository-url>
-cd AasPaas
+| Demo                      | Link                               |
+| ------------------------- | ---------------------------------- |
+| 🎥 Feature Walkthrough    | *Add your YouTube/Drive link here* |
+| 🧭 Vendor Onboarding Demo | *Coming soon*                      |
+| 🌙 Dark Mode UI Showcase  | *Coming soon*                      |
+
+---
+
+### 🖼️ Screenshots
+
+> Add screenshots inside `docs/screenshots/` directory.
+
+| Page                        | Preview                                                      |
+| --------------------------- | ------------------------------------------------------------ |
+| 🏠 **Home / Search**        | `![Home](docs/screenshots/home.png)`                         |
+| 🏪 **Shop Detail with Map** | `![Shop Detail](docs/screenshots/shop-detail.png)`           |
+| 🧑‍🔧 **Vendor Dashboard**  | `![Vendor Dashboard](docs/screenshots/vendor-dashboard.png)` |
+| ⭐ **Reviews & Favorites**   | `![Favorites](docs/screenshots/favorites.png)`               |
+| 🌙 **Dark Mode**            | `![Dark](docs/screenshots/dark-mode.png)`                    |
+
+---
+
+# ✨ **Features**
+
+### 🔎 **Smart Discovery**
+
+* Category-based browsing (food, repair, services, etc.)
+* Location-aware search (Map/List toggle)
+* Auto-complete search bar
+
+### 🧾 **Vendor Onboarding**
+
+* OCR-powered shop detail extraction
+* Upload shop photos → auto-suggest name/category
+* Vendor console to edit shop details, visibility, timings
+
+### ⭐ **Engagement**
+
+* Customer reviews with photos
+* Favorite shops
+* “Helpful” upvotes
+* Average rating system
+
+### 🧭 **Geospatial Power**
+
+* Nearby shop search
+* Integrated Google Maps directions
+* Distance + ETA preview
+
+### 🔐 **Authentication**
+
+* JWT-based auth (Access + Refresh tokens)
+* Vendor, Customer, Admin roles
+* Secure cookie/LS token flow
+
+### 🤖 **AI Helpers (Optional)**
+
+* OCR (Tesseract.js)
+* Shop category classification
+* Text extraction
+* Gemini-based enhancements
+
+---
+
+# 🧱 **Tech Stack**
+
+### 🖥️ **Frontend**
+
+| Tech              | Purpose                       |
+| ----------------- | ----------------------------- |
+| ⚛️ React + Vite   | Fast UI development           |
+| 🎨 TailwindCSS    | Utility-first styling         |
+| 🔄 Redux Toolkit  | Global state management       |
+| 🚦 React Router   | Routing                       |
+| 📡 TanStack Query | Server state fetching/caching |
+| 🗺️ Mapbox/Mappls | Maps + geolocation            |
+
+---
+
+### 🛠️ **Backend**
+
+| Tech                  | Purpose                                |
+| --------------------- | -------------------------------------- |
+| 🟩 Node.js + Express  | REST API                               |
+| 🍃 MongoDB + Mongoose | Database                               |
+| 🧰 Redis              | Caching, queues                        |
+| 📮 BullMQ             | Background jobs (OCR, auto-processing) |
+| 🔑 JWT                | Auth                                   |
+| ✂️ Sharp              | Image resize/optimize                  |
+| 👓 Tesseract.js       | OCR engine                             |
+| 🤖 Gemini API         | Optional AI help                       |
+
+---
+
+### ⚓ **DevOps**
+
+| Tool                | Purpose         |
+| ------------------- | --------------- |
+| 🐳 Docker & Compose | Containers      |
+| 🚀 Render           | Deployment      |
+| 🔧 render.yaml      | Infra-as-config |
+
+---
+
+# 📦 **Monorepo Structure**
+
+```
+.
+├── backend/                   # Express API, DB, OCR, queues
+│   ├── src/
+│   │   ├── models/            # Mongoose schemas
+│   │   ├── controllers/       # Route handlers
+│   │   ├── routes/            # API routes
+│   │   ├── middleware/        # Auth, validation, CORS, logging
+│   │   ├── utils/             # Helpers
+│   │   ├── services/          # OCR, AI, file operations
+│   │   └── app.js             # Express setup
+│   ├── Dockerfile
+│   ├── .env.example
+│   └── seed.js
+│
+├── frontend/                  # React + Vite
+│   ├── src/
+│   │   ├── components/        # UI components
+│   │   ├── pages/             # Pages (home, vendor, shops)
+│   │   ├── store/             # Redux store
+│   │   ├── hooks/             # Custom hooks
+│   │   ├── api/               # API calls
+│   │   └── styles/            # Tailwind + theme
+│   ├── public/
+│   ├── Dockerfile
+│   └── index.html
+│
+├── docker-compose.yml
+└── README.md
 ```
 
-### 2. Backend Setup
+---
+
+# 🚀 **Quick Start**
+
+## Option A — ⭐ Docker Compose (recommended)
 
 ```bash
+docker compose up --build
+```
+
+### Services exposed:
+
+| Service         | URL                                            |
+| --------------- | ---------------------------------------------- |
+| 🗄️ MongoDB     | localhost:27017                                |
+| 🚦 Redis        | localhost:6379                                 |
+| 🛠️ Backend API | [http://localhost:5000](http://localhost:5000) |
+| 🖥️ Frontend    | [http://localhost:3000](http://localhost:3000) |
+
+---
+
+## Option B — Manual Setup
+
+### 1️⃣ Backend
+
+```powershell
 cd backend
 npm install
-cp .env.example .env
-# Edit .env with your configuration
 ```
 
-**Required Environment Variables:**
+Create `backend/.env`:
+
 ```env
 MONGO_URI=mongodb://localhost:27017/aas-paas
-JWT_SECRET=your-secret-key
-JWT_REFRESH_SECRET=your-refresh-secret
-S3_BUCKET=your-bucket-name
-AWS_ACCESS_KEY_ID=your-key
-AWS_SECRET_ACCESS_KEY=your-secret
-MAPBOX_TOKEN=your-mapbox-token
+PORT=5000
+JWT_SECRET=change-this-32+chars
+JWT_REFRESH_SECRET=change-this-32+chars
+FRONTEND_URL=http://localhost:3000
+
+# Optional
+REDIS_URL=redis://localhost:6379
+GOOGLE_VISION_ENABLED=false
+MAPPLE_API_KEY=your-mappls-key
+GEMINI_API_KEY=your-gemini-key
+GEMINI_MODEL=gemini-2.0-flash
 ```
 
-### 3. Frontend Setup
+Run backend:
 
 ```bash
+npm run dev
+```
+
+---
+
+### 2️⃣ Frontend
+
+```powershell
 cd frontend
 npm install
-cp .env.example .env
-# Edit .env with your API URL
 ```
 
-**Required Environment Variables:**
+Create `.env.local`:
+
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_MAPBOX_TOKEN=your-mapbox-token
+VITE_API_URL=http://localhost:5000/api
+VITE_MAPPLS_MAP_SDK_KEY=your-mappls-key
+# VITE_MAPBOX_TOKEN=your-token
 ```
 
-### 4. Seed Database (Optional)
+Run frontend:
+
+```bash
+npm run dev
+```
+
+---
+
+### 3️⃣ Optional — Seed database
 
 ```bash
 cd backend
 npm run seed
 ```
 
-This creates sample users and shops for testing.
+---
 
-## 🏃 Running Locally
+# 🧪 **Testing**
 
-### Option 1: Docker Compose (Recommended)
-
-```bash
-docker-compose up
-```
-
-This starts:
-- MongoDB on port 27017
-- Redis on port 6379
-- Backend on port 5000
-- Frontend on port 3000
-
-### Option 2: Manual Start
-
-**Terminal 1 - Backend:**
-```bash
-cd backend
-npm run dev
-```
-
-**Terminal 2 - Frontend:**
-```bash
-cd frontend
-npm start
-```
-
-**Terminal 3 - MongoDB:**
-```bash
-mongod
-```
-
-## 📁 Project Structure
-
-```
-AasPaas/
-├── backend/
-│   ├── src/
-│   │   ├── config/         # Database, logger configuration
-│   │   ├── models/         # Mongoose models (User, Shop, Review)
-│   │   ├── routes/         # Express routes
-│   │   ├── controllers/    # Route controllers
-│   │   ├── middleware/     # Auth, validation, error handling
-│   │   ├── services/       # OCR, storage, geocoding services
-│   │   ├── scripts/        # Seed data script
-│   │   └── index.js        # Entry point
-│   ├── Dockerfile
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── pages/          # Page components
-│   │   ├── components/     # Reusable components
-│   │   ├── store/          # Redux store
-│   │   ├── services/       # API services
-│   │   └── App.jsx         # Main app component
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml
-└── README.md
-```
-
-## 🧪 Testing
-
-### Backend Tests
-
-```bash
-cd backend
-npm test
-```
-
-### Frontend Tests
-
-```bash
-cd frontend
-npm test
-```
-
-## 📚 API Documentation
-
-### Authentication
-
-- `POST /api/auth/signup` - Register new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/refresh` - Refresh access token
-- `GET /api/auth/me` - Get current user
-- `POST /api/auth/logout` - Logout
-
-### Shops
-
-- `POST /api/shops/upload-image` - Upload shop image (vendor)
-- `GET /api/shops/ocr-result?uploadId=...` - Get OCR results
-- `POST /api/shops` - Create shop (vendor)
-- `GET /api/shops?lat=&lon=&radius=` - Search shops
-- `GET /api/shops/:shopId` - Get shop details
-- `PATCH /api/shops/:shopId` - Update shop (owner)
-- `DELETE /api/shops/:shopId` - Delete shop (owner/admin)
-
-### Reviews
-
-- `POST /api/shops/:shopId/reviews` - Create review (customer, supports up to 5 images via multipart form-data field `images`)
-- `GET /api/shops/:shopId/reviews` - Get shop reviews (supports `page`, `limit`, `sort=newest|oldest|rating|helpful`, `filter=all|photos`)
-- `PATCH /api/shops/:shopId/reviews/:reviewId` - Update own review (rating/text)
-- `DELETE /api/shops/:shopId/reviews/:reviewId` - Delete own review (or admin)
-- `POST /api/shops/:shopId/reviews/:reviewId/helpful` - Mark review as helpful (one per user)
-
-### Favorites
-
-- `POST /api/shops/:shopId/favorite` - Add shop to favorites (customer; idempotent)
-- `DELETE /api/shops/:shopId/favorite` - Remove shop from favorites (idempotent)
-- `GET /api/shops/:shopId/favorite` - Check if current user has favorited the shop
-- `GET /api/favorites` - Get current user's favorite shops
-
-### Uploads
-
-- `POST /api/upload` - Upload review photos (customer) — body: multipart form-data field `images` (up to 5). Returns `{ urls: string[] }`.
-
-### Analytics
-
-- `POST /api/shops/:shopId/track-view` - Track shop view
-- `GET /api/shops/:shopId/vendor/:vendorId/reviews` - Vendor: list reviews for owned shop
-- `GET /api/shops/:shopId/vendor/:vendorId/reviews/analytics` - Vendor: reviews analytics (average, breakdown, time series)
-
-See `analysis.md` for detailed API specifications.
-
-## 🚢 Deployment
-
-### Backend (Render/Heroku/DigitalOcean)
-
-1. Set environment variables in hosting platform
-2. Deploy backend repository
-3. Ensure MongoDB Atlas connection string is set
-
-### Frontend (Vercel/Netlify)
-
-1. Set build command: `npm run build`
-2. Set output directory: `build`
-3. Set environment variables:
-   - `REACT_APP_API_URL` - Your backend URL
-   - `REACT_APP_MAPBOX_TOKEN` - Your Mapbox token
-
-### Docker Production
-
-```bash
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-## 🔒 Security
-
-- Passwords hashed with bcrypt
-- JWT tokens in HTTP-only cookies
-- Input validation with express-validator
-- Rate limiting on auth endpoints
-- CORS configured
-- Environment variables for secrets
-
-## 📝 License
-
-MIT
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
-
-## 📧 Support
-
-For issues and questions, please open an issue on GitHub.
+| Area                  | Command                   |
+| --------------------- | ------------------------- |
+| 🧠 Backend (Jest)     | `cd backend && npm test`  |
+| 🖥️ Frontend (Vitest) | `cd frontend && npm test` |
+| 🧪 E2E (Playwright)   | `npm run test:e2e`        |
 
 ---
 
-**Note**: This is a production-ready scaffold. Ensure you:
-- Set strong JWT secrets in production
-- Configure proper CORS origins
-- Set up MongoDB Atlas for production
-- Configure S3 bucket permissions
-- Enable rate limiting
-- Set up monitoring (Sentry, etc.)
+# ⚙️ **Environment Notes**
 
+* Frontend reads API base from `VITE_API_URL`
+* Default: `http://localhost:5000/api`
+* Docker Compose auto-wires all services (Mongo, Redis, Frontend, Backend)
+
+---
+
+# 🚢 **Deployment**
+
+AasPaas supports:
+
+* 🟦 **Render** (recommended)
+* 🐳 **Docker Image Deployment**
+* 🟢 **Static Hosting** (frontend)
+
+Render config includes:
+
+* `render.yaml`
+* Dockerfiles for frontend & backend
+* Auto-deploy on Git push (branch: main)
+
+---
+
+# 👤 **Author**
+
+**Aharnish Dubey (aharnish5)**
+🔗 GitHub: [https://github.com/aharnish5/](https://github.com/aharnish5/)
+
+---
+
+# 🎉 **Enjoy Building with AasPaas!**
+
+This project is designed to celebrate India’s vibrant micro-business ecosystem and bring local shops online with ease.
+Feel free to open issues, contribute, or suggest improvements!
