@@ -1,0 +1,836 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AasPaas API",
+    "version": "1.0.0",
+    "description": "OpenAPI skeleton for AasPaas hyperlocal vendor platform."
+  },
+  "servers": [
+    { "url": "http://localhost:5000/api", "description": "Local dev" },
+    { "url": "https://{domain}/api", "description": "Production", "variables": { "domain": { "default": "aaspaas.example.com" } } }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "details": {
+            "type": "array",
+            "items": { "oneOf": [{ "type": "string" }, { "type": "object" }] }
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string" },
+          "role": { "type": "string", "enum": ["customer", "vendor", "admin"] }
+        },
+        "required": ["_id", "name", "email", "role"]
+      },
+      "Shop": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "ownerId": { "type": "string" },
+          "name": { "type": "string" },
+          "category": { "type": "string" },
+          "address": {
+            "type": "object",
+            "properties": {
+              "raw": { "type": "string" },
+              "locality": { "type": "string" },
+              "city": { "type": "string" },
+              "state": { "type": "string" },
+              "postalCode": { "type": "string" },
+              "country": { "type": "string" }
+            }
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["Point"] },
+              "coordinates": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          },
+          "ratings": {
+            "type": "object",
+            "properties": {
+              "avg": { "type": "number" },
+              "count": { "type": "integer" }
+            }
+          },
+          "favoritesCount": { "type": "integer" }
+        },
+        "required": ["_id", "ownerId", "name", "category", "address", "location"]
+      },
+      "Review": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "shopId": { "type": "string" },
+          "userId": { "oneOf": [{ "$ref": "#/components/schemas/User" }, { "type": "string" }] },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "text": { "type": "string" },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": { "type": "string", "format": "uri" }
+              },
+              "required": ["url"]
+            }
+          },
+          "helpfulCount": { "type": "integer" }
+        },
+        "required": ["_id", "shopId", "userId", "rating"]
+      }
+    }
+  },
+  "security": [],
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Create user account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" },
+                  "role": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "defaultLocation": { "type": "object" }
+                },
+                "required": ["name", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "user": { "$ref": "#/components/schemas/User" },
+                    "accessToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Validation error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Authenticate user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "identifier": { "type": "string" },
+                  "password": { "type": "string" },
+                  "role": { "type": "string" }
+                },
+                "required": ["identifier", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "user": { "$ref": "#/components/schemas/User" },
+                    "accessToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Invalid credentials", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Get current user",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/shops": {
+      "get": {
+        "summary": "List shops with filters",
+        "parameters": [
+          { "in": "query", "name": "lat", "schema": { "type": "number" } },
+          { "in": "query", "name": "lon", "schema": { "type": "number" } },
+          { "in": "query", "name": "radius", "schema": { "type": "number" } },
+          { "in": "query", "name": "category", "schema": { "type": "string" } },
+          { "in": "query", "name": "q", "schema": { "type": "string" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated shops",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "shops": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Shop" }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": { "type": "integer" },
+                        "limit": { "type": "integer" },
+                        "total": { "type": "integer" },
+                        "pages": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create shop",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "category": { "type": "string" },
+                  "address": { "type": "object" },
+                  "location": { "type": "object" },
+                  "description": { "type": "string" },
+                  "hours": { "type": "array" },
+                  "uploadIds": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
+                },
+                "required": ["name", "category", "address"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Shop created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "shop": { "$ref": "#/components/schemas/Shop" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Validation error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/shops/{shopId}": {
+      "parameters": [
+        { "in": "path", "name": "shopId", "required": true, "schema": { "type": "string" } }
+      ],
+      "get": {
+        "summary": "Get shop by ID",
+        "responses": {
+          "200": {
+            "description": "Shop detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "shop": { "$ref": "#/components/schemas/Shop" } }
+                }
+              }
+            }
+          },
+          "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "patch": {
+        "summary": "Update shop",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "category": { "type": "string" },
+                  "address": { "type": "object" },
+                  "hours": { "type": "array" },
+                  "uploadIds": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shop updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "shop": { "$ref": "#/components/schemas/Shop" }
+                  }
+                }
+              }
+            }
+          },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete shop",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/shops/{shopId}/reviews": {
+      "parameters": [
+        { "in": "path", "name": "shopId", "required": true, "schema": { "type": "string" } }
+      ],
+      "get": {
+        "summary": "List reviews",
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer" } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer" } },
+          { "in": "query", "name": "sort", "schema": { "type": "string", "enum": ["newest", "oldest", "rating", "helpful"] } },
+          { "in": "query", "name": "filter", "schema": { "type": "string", "enum": ["photos", "all"] } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated reviews",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reviews": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Review" }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": { "type": "integer" },
+                        "limit": { "type": "integer" },
+                        "total": { "type": "integer" },
+                        "pages": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create review",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+                  "text": { "type": "string" },
+                  "images": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "binary" }
+                  }
+                },
+                "required": ["rating"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Review created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "review": { "$ref": "#/components/schemas/Review" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/favorites": {
+      "get": {
+        "summary": "List favorites",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Favorite shops",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "shops": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Shop" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/shops/{shopId}/favorite": {
+      "parameters": [
+        { "in": "path", "name": "shopId", "required": true, "schema": { "type": "string" } }
+      ],
+      "post": {
+        "summary": "Add favorite",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": {
+            "description": "Favorited",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" }, "favorited": { "type": "boolean" } } }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove favorite",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Removed",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" }, "favorited": { "type": "boolean" } } }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Check favorite status",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Status",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "favorited": { "type": "boolean" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vendors/{vendorId}/analytics": {
+      "parameters": [
+        { "in": "path", "name": "vendorId", "required": true, "schema": { "type": "string" } },
+        { "in": "query", "name": "range", "schema": { "type": "string", "enum": ["7", "30", "90", "custom"] } }
+      ],
+      "get": {
+        "summary": "Vendor analytics",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Analytics summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalShops": { "type": "integer" },
+                    "totalViews": { "type": "integer" },
+                    "totalReviews": { "type": "integer" },
+                    "averageRating": { "type": "number" },
+                    "shops": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "shopId": { "type": "string" },
+                          "name": { "type": "string" },
+                          "views": { "type": "integer" },
+                          "reviews": { "type": "integer" },
+                          "rating": { "type": "number" },
+                          "status": { "type": "string" }
+                        }
+                      }
+                    },
+                    "viewsOverTime": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date": { "type": "string", "format": "date" },
+                          "views": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/shops/{shopId}/track-view": {
+      "parameters": [
+        { "in": "path", "name": "shopId", "required": true, "schema": { "type": "string" } }
+      ],
+      "post": {
+        "summary": "Track shop view",
+        "responses": {
+          "200": {
+            "description": "Tracked",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "summary": "List categories",
+        "parameters": [
+          { "in": "query", "name": "parent", "schema": { "type": "string" } },
+          { "in": "query", "name": "grouped", "schema": { "type": "boolean" } },
+          { "in": "query", "name": "includeCounts", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Categories",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create category",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "parent": { "type": "string" },
+                  "priority": { "type": "integer" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "category": { "type": "object" } } }
+              }
+            }
+          },
+          "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/categories/{id}": {
+      "parameters": [
+        { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+      ],
+      "patch": {
+        "summary": "Update category",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Category updated",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "category": { "type": "object" } } }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete category",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/location/autocomplete": {
+      "get": {
+        "summary": "Location suggestions",
+        "parameters": [
+          { "in": "query", "name": "q", "required": true, "schema": { "type": "string" } },
+          { "in": "query", "name": "lat", "schema": { "type": "number" } },
+          { "in": "query", "name": "lon", "schema": { "type": "number" } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggestions",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/location/details": {
+      "get": {
+        "summary": "Location details",
+        "parameters": [
+          { "in": "query", "name": "osmId", "required": true, "schema": { "type": "string" } },
+          { "in": "query", "name": "osmType", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Place details",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/shops/upload-image": {
+      "post": {
+        "summary": "Upload shop image",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": { "type": "string", "format": "binary" }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uploadId": { "type": "string" },
+                    "tempUrl": { "type": "string", "format": "uri" },
+                    "imageKey": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/upload": {
+      "post": {
+        "summary": "Generic image upload",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "images": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "binary" }
+                  }
+                },
+                "required": ["images"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Uploaded URLs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "urls": {
+                      "type": "array",
+                      "items": { "type": "string", "format": "uri" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

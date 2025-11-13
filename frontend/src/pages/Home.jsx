@@ -1,15 +1,32 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { MapPin, Camera, BarChart3, Search, ArrowRight, Navigation, Star, Store, Users, ChevronRight, Sparkles, Coffee, Utensils, ShoppingBag } from 'lucide-react'
-import { shopAPI } from '../services/api'
-import Button from '../components/ui/Button'
-import { useGeolocation } from '../hooks/useGeolocation'
+import {
+  Sparkles,
+  Navigation,
+  MapPin,
+  Star,
+  Store,
+  Users,
+  Shield,
+  Camera,
+  HeartHandshake,
+  Clock,
+  ArrowRight,
+  Wand2,
+  IndianRupee,
+  Compass
+} from 'lucide-react'
 import AddressAutocomplete from '../components/search/AddressAutocomplete'
+import Button from '../components/ui/Button'
+import { useAuth } from '../hooks/useAuth'
+import { useGeolocation } from '../hooks/useGeolocation'
+import { shopAPI } from '../services/api'
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('')
-  const [sessionToken] = useState(() => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2))
+  const [sessionToken] = useState(() =>
+    typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)
+  )
   const navigate = useNavigate()
   const { isAuthenticated, role } = useAuth()
   const { location: geolocation, getLocation } = useGeolocation()
@@ -17,68 +34,63 @@ const Home = () => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [currentCharIndex, setCurrentCharIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
-  const heroRef = useRef(null)
 
-  const words = ['Coffee Shops', 'Local Stores', 'Restaurants', 'Services', 'Hidden Gems']
+  const heroWords = useMemo(
+    () => ['Street Food', 'Tailors', 'Organic Farms', 'Key Makers', 'Tea Stalls', 'Home Bakers'],
+    []
+  )
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      handleTyping()
-    }, 100)
+      const currentWord = heroWords[currentWordIndex]
+      if (isDeleting) {
+        if (currentCharIndex > 0) {
+          setCurrentCharIndex((prev) => prev - 1)
+        } else {
+          setIsDeleting(false)
+          setCurrentWordIndex((prev) => (prev + 1) % heroWords.length)
+        }
+      } else if (currentCharIndex < currentWord.length) {
+        setCurrentCharIndex((prev) => prev + 1)
+      } else {
+        setTimeout(() => setIsDeleting(true), 1800)
+      }
+    }, isDeleting ? 75 : 110)
 
     return () => clearTimeout(timer)
-  }, [currentCharIndex, isDeleting, currentWordIndex])
+  }, [currentCharIndex, currentWordIndex, heroWords, isDeleting])
 
-  const handleTyping = () => {
-    const currentWord = words[currentWordIndex]
-    
-    if (isDeleting) {
-      if (currentCharIndex > 0) {
-        setCurrentCharIndex(currentCharIndex - 1)
-      } else {
-        setIsDeleting(false)
-        setCurrentWordIndex((currentWordIndex + 1) % words.length)
-      }
-    } else {
-      if (currentCharIndex < currentWord.length) {
-        setCurrentCharIndex(currentCharIndex + 1)
-      } else {
-        setTimeout(() => setIsDeleting(true), 2000)
-      }
-    }
-  }
-
-  const handleSearch = (e) => {
+  const handleSearchSubmit = (e) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`)
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
     }
   }
 
-  const handleSelectSuggestion = async (s) => {
-    setSearchQuery(`${s.label || s.locality || s.city || s.displayName}`)
-    if (s.provider === 'google' && s.placeId) {
+  const handleSelectSuggestion = async (suggestion) => {
+    setSearchQuery(suggestion.label || suggestion.displayName || '')
+
+    if (suggestion.provider === 'google' && suggestion.placeId) {
       try {
-        const detailsRes = await shopAPI.placeDetails(s.placeId, sessionToken)
-        const place = detailsRes.data.place
+        const details = await shopAPI.placeDetails(suggestion.placeId, sessionToken)
+        const place = details.data.place
         if (place?.latitude && place?.longitude) {
           navigate(`/search?lat=${place.latitude}&lon=${place.longitude}`)
           return
         }
-      } catch (e) {
-        console.warn('Failed to fetch Google place details, falling back to query navigation', e)
+      } catch (error) {
+        console.warn('Failed to fetch place details from Google', error)
       }
     }
-    if (s.latitude && s.longitude) {
-      navigate(`/search?lat=${s.latitude}&lon=${s.longitude}`)
+
+    if (suggestion.latitude && suggestion.longitude) {
+      navigate(`/search?lat=${suggestion.latitude}&lon=${suggestion.longitude}`)
     } else {
-      navigate(`/search?q=${encodeURIComponent(s.displayName)}`)
+      navigate(`/search?q=${encodeURIComponent(suggestion.displayName || suggestion.label || '')}`)
     }
   }
 
-  const handleUseLocation = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const handleUseLocation = () => {
     setIsGettingLocation(true)
     getLocation()
   }
@@ -91,325 +103,361 @@ const Home = () => {
     }
   }, [geolocation.coordinates, isGettingLocation, navigate])
 
-  const features = [
-    {
-      icon: MapPin,
-      title: 'Smart Discovery',
-      description: 'AI-powered recommendations based on your location and preferences',
-      color: 'from-blue-500 to-cyan-500'
-    },
-    {
-      icon: Camera,
-      title: 'Visual Search',
-      description: 'Find shops using photos or simply describe what you need',
-      color: 'from-purple-500 to-pink-500'
-    },
-    {
-      icon: BarChart3,
-      title: 'Live Insights',
-      description: 'Real-time analytics for both shoppers and business owners',
-      color: 'from-orange-500 to-red-500'
-    }
-  ]
+  const featureTiles = useMemo(
+    () => [
+      {
+        icon: Wand2,
+        title: 'AI-guided onboarding',
+        description: 'Snap a storefront photo and let our AI draft the perfect listing within seconds.'
+      },
+      {
+        icon: Camera,
+        title: 'Visual search',
+        description: 'Upload a photo of a sign or menu to find matching vendors around you.'
+      },
+      {
+        icon: Shield,
+        title: 'Verified community',
+        description: 'Every listing is validated by locals and curated by our safety team.'
+      },
+      {
+        icon: HeartHandshake,
+        title: 'Frictionless loyalty',
+        description: 'Favorites, reviews, and helpful votes keep authentic businesses thriving.'
+      },
+    ],
+    []
+  )
 
-  const shopCards = [
-    { 
-      icon: Store, 
-      name: 'Local Stores', 
-      count: '250+', 
-      gradient: 'from-blue-500 to-cyan-500',
-      rotation: 'rotate-3'
-    },
-    { 
-      icon: Coffee, 
-      name: 'Cafes', 
-      count: '180+', 
-      gradient: 'from-purple-500 to-pink-500',
-      rotation: '-rotate-2'
-    },
-    { 
-      icon: Utensils, 
-      name: 'Restaurants', 
-      count: '150+', 
-      gradient: 'from-orange-500 to-red-500',
-      rotation: 'rotate-2'
-    },
-    { 
-      icon: ShoppingBag, 
-      name: 'Services', 
-      count: '300+', 
-      gradient: 'from-green-500 to-emerald-500',
-      rotation: '-rotate-3'
-    }
-  ]
+  const categoryGrid = useMemo(
+    () => [
+      { title: 'Street Food', count: '120+', accent: 'from-[#ff8ba7] to-[#ffaf6f]' },
+      { title: 'Artisans', count: '95+', accent: 'from-[#7b5dff] to-[#8c7bff]' },
+      { title: 'Daily Helpers', count: '75+', accent: 'from-[#43cea2] to-[#185a9d]' },
+      { title: 'Home Services', count: '110+', accent: 'from-[#f5576c] to-[#f093fb]' },
+      { title: 'Wellness', count: '68+', accent: 'from-[#43e97b] to-[#38f9d7]' },
+      { title: 'Grocers', count: '132+', accent: 'from-[#fa709a] to-[#fee140]' },
+    ],
+    []
+  )
+
+  const vendorSteps = useMemo(
+    () => [
+      { title: 'Capture your story', description: 'Upload photos, record voice notes, or type in any language.' },
+      { title: 'Enhance with AI', description: 'We enrich your listing with location tags, pricing, and operating hours.' },
+      { title: 'Go live & engage', description: 'Share your link, respond to reviews, and track insights in real-time.' },
+    ],
+    []
+  )
+
+  const testimonials = useMemo(
+    () => [
+      {
+        quote:
+          'Our chai stall was invisible online. Within a week on Aas Paas, office goers started queuing again. The analytics help us plan for peak hours.',
+        name: 'Saira & Ahmed',
+        role: 'Founders, Irani Chai Stories – Hyderabad'
+      },
+      {
+        quote:
+          'I discovered a tailor who does same-day alterations! The map view and reviews made it easy to trust local vendors again.',
+        name: 'Rohan Verma',
+        role: 'Customer, Bengaluru'
+      },
+    ],
+    []
+  )
 
   return (
-    <div className="min-h-screen bg-white overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50"></div>
-        <div className="absolute top-1/4 -left-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float"></div>
-        <div className="absolute top-1/3 -right-10 w-72 h-72 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float-delayed"></div>
-        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float-slower"></div>
+    <div className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_color-mix(in_srgb,_var(--color-primary)_16%,_transparent)_0%,_transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_color-mix(in_srgb,_var(--color-secondary)_12%,_transparent)_0%,_transparent_60%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,_color-mix(in_srgb,_var(--color-surface)_88%,_transparent),_color-mix(in_srgb,_var(--color-background)_85%,_transparent))]" />
       </div>
 
-      {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto w-full">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="space-y-8">
-              {/* Animated Badge */}
-              <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-4 py-2 shadow-lg animate-fade-in">
-                <Sparkles className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm font-medium text-gray-700">Discover local gems around you</span>
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              </div>
-
-              {/* Main Heading with Enhanced Typing Animation */}
-              <div className="space-y-6">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  Discover Amazing
-                  <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent min-h-[1.2em]">
-                    {words[currentWordIndex].substring(0, currentCharIndex)}
-                    <span className="typing-cursor">|</span>
-                  </span>
-                  Near You
-                </h1>
-                
-                <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
-                  Find the best local businesses, from cozy cafes to essential services. 
-                  Everything you need is just around the corner.
-                </p>
-              </div>
-
-              {/* Search Section - Horizontal Layout with Side-by-side Search Icon */}
-              <div className="space-y-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-4 animate-fade-in-up">
-                  <form onSubmit={handleSearch} className="flex items-center gap-4">
-                    {/* Search Input with Side-by-side Icon */}
-                    <div className="flex-1 relative">
-                      <div className="flex items-center gap-3 bg-transparent rounded-xl">
-                        <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        <AddressAutocomplete
-                          placeholder="Enter your area, street, or landmark..."
-                          onSelect={handleSelectSuggestion}
-                          onQueryChange={setSearchQuery}
-                          className="flex-1"
-                          inputClassName="w-full h-12 bg-transparent border-0 focus:ring-0 placeholder-gray-400 text-gray-900 text-lg pl-0"
-                          dropdownClassName="shadow-xl rounded-xl border border-gray-200 mt-2"
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Buttons */}
-                    <div className="flex gap-3">
-                      <Button
-                        type="submit"
-                        className="h-12 px-6 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
-                      >
-                        Search
-                      </Button>
-                      <Button
-                        onClick={handleUseLocation}
-                        disabled={geolocation.loading || isGettingLocation}
-                        variant="outline"
-                        className="h-12 px-4 border-2 border-gray-300 hover:border-blue-500 text-gray-700 hover:text-blue-600 rounded-xl font-medium transition-all duration-300 hover:shadow-lg flex items-center gap-2"
-                      >
-                        {geolocation.loading || isGettingLocation ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                          </>
-                        ) : (
-                          <Navigation className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </div>
-
-                {/* Browse All Shops Button */}
-                <div className="flex justify-start">
-                  <Button
-                    onClick={() => navigate('/search')}
-                    variant="ghost"
-                    className="h-12 px-6 text-gray-600 hover:text-blue-600 rounded-xl font-medium group transition-all duration-300"
-                  >
-                    Browse All Shops
-                    <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </div>
-              </div>
+      <section className="relative py-16 sm:py-20">
+        <div className="container-custom grid gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div className="space-y-8">
+            <div className="inline-flex.items-center gap-3 rounded-full border border-[color:var(--color-border)]/60 bg-[color:var(--color-surface)]/70 px-4 py-2 shadow-[var(--shadow-xs)] backdrop-blur">
+              <Sparkles className="h-4 w-4 text-[color:var(--color-primary)]" />
+              <span className="text-xs font-semibold uppercase tracking-[0.24em] text-text-muted">
+                Mapping the heartbeat of India
+              </span>
             </div>
 
-            {/* Right Content - Animated Shop Cards */}
-            <div className="relative">
-              <div className="grid grid-cols-2 gap-6">
-                {shopCards.map((card, index) => {
-                  const Icon = card.icon
-                  return (
-                    <div
-                      key={index}
-                      className={`bg-gradient-to-br ${card.gradient} rounded-2xl p-6 text-white shadow-xl transform ${card.rotation} hover:rotate-0 transition-all duration-500 hover:scale-105 hover:shadow-2xl cursor-pointer group`}
-                      onClick={() => navigate(`/search?category=${card.name.toLowerCase().replace(' ', '-')}`)}
+            <div className="space-y-6">
+              <h1 className="text-4xl font-bold.leading-tight text-text sm:text-5xl lg:text-6xl">
+                Find extraordinary{' '}
+                <span className="bg-gradient-to-r from-[color:var(--color-text)] via-[color:var(--color-primary)] to-[color:var(--color-secondary)] bg-clip-text text-transparent">
+                  {heroWords[currentWordIndex].substring(0, currentCharIndex)}
+                  <span className="align-top text-3xl text-slate-400">▍</span>
+                </span>
+                {' '}around the corner
+              </h1>
+              <p className="max-w-xl text-base text-text-muted sm:text-lg">
+                Aas Paas blends AI, community reviews, and real-time maps to surface authentic local vendors. Discover
+                the chai that fuels your commute, the artisan who mends leather, or the tutor who inspires the next
+                breakthrough.
+              </p>
+            </div>
+
+            <div className="glass-card relative z-30 rounded-3xl p-4">
+              <form onSubmit={handleSearchSubmit} className="space-y-4">
+                <AddressAutocomplete
+                  placeholder="Search for key makers, dosa stalls, tailors…"
+                  onSelect={handleSelectSuggestion}
+                  onQueryChange={setSearchQuery}
+                  onSubmitQuery={(query) => navigate(`/search?q=${encodeURIComponent(query)}`)}
+                  className="w-full"
+                  inputClassName="h-14 rounded-2xl bg-[color:var(--color-surface)] text-base font-semibold"
+                  dropdownClassName="rounded-2xl"
+                />
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.22em] text-text-muted">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-surface-muted)] px-2.5 py-1 whitespace-nowrap text-[0.7rem]">
+                      <Star className="h-3 w-3 text-[color:var(--color-primary)]" />
+                      Trusted locals
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-surface-muted)] px-2.5 py-1 whitespace-nowrap text-[0.7rem]">
+                      <Clock className="h-3 w-3 text-[color:var(--color-primary)]" />
+                      Real-time availability
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      className="justify-center"
+                      icon={<ArrowRight className="h-4 w-4" />}
+                      iconPosition="right"
                     >
-                      <div className="flex flex-col items-center text-center space-y-3">
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                          <Icon className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-lg mb-1">{card.name}</h3>
-                          <p className="text-white/80 text-sm">{card.count} nearby</p>
-                        </div>
+                      Explore now
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="justify-center"
+                      onClick={handleUseLocation}
+                      disabled={geolocation.loading || isGettingLocation}
+                      icon={<Navigation className="h-4 w-4" />}
+                    >
+                      {geolocation.loading || isGettingLocation ? 'Locating…' : 'Use my location'}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-3">
+              {[
+                { label: 'Neighbourhood vendors', value: '18,000+' },
+                { label: 'Verified reviews', value: '120K+' },
+                { label: 'Cities mapped', value: '42' },
+              ].map((stat) => (
+                <div key={stat.label} className="glass-card rounded-3xl p-4 text-center">
+                  <p className="text-2xl font-semibold text-text">{stat.value}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-text-muted">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute -inset-4 rounded-[32px] bg-gradient-to-br from-[color:var(--color-primary)]/15 via-transparent to-[color:var(--color-secondary)]/20 blur-3xl" />
+            <div className="glass-card relative rounded-[32px] p-6">
+              <div className="grid gap-4">
+                <div className="surface-card flex items-center justify-between rounded-2xl px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-9 w-9 rounded-2xl bg-white/60 p-2 text-[color:var(--color-primary)]" />
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-text-muted">What locals love</p>
+                      <p className="text-sm font-semibold text-text">Morning filter coffee</p>
+                    </div>
+                  </div>
+                  <div className="rounded-full bg-[rgba(123,93,255,0.12)] px-3 py-1 text-xs font-semibold text-[color:var(--color-primary)]">
+                    4.9 ★
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="surface-card rounded-2xl p-4">
+                    <div className="flex items-center gap-3">
+                      <Store className="h-8 w-8 rounded-2xl bg-[rgba(123,93,255,0.12)] p-2 text-[color:var(--color-primary)]" />
+                      <div>
+                        <p className="text-sm font-semibold text-text">Nala Market Tailors</p>
+                        <p className="text-xs text-text-muted">Ready in 24 hours · ₹₹ affordable</p>
                       </div>
                     </div>
-                  )
-                })}
-              </div>
+                    <div className="mt-4 rounded-2xl bg-[url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=500&q=80')] bg-cover bg-center pb-[56%]" />
+                  </div>
 
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -left-4 bg-yellow-400 rounded-2xl p-3 shadow-2xl animate-bounce">
-                <Star className="w-6 h-6 text-white fill-current" />
-              </div>
-              
-              <div className="absolute -bottom-4 -right-4 bg-green-400 rounded-2xl p-3 shadow-2xl animate-bounce delay-300">
-                <Users className="w-6 h-6 text-white" />
-              </div>
+                  <div className="surface-card rounded-2xl p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-text">Vendor pulse</p>
+                        <p className="text-xs text-text-muted">Banaswadi, Bengaluru</p>
+                      </div>
+                      <IndianRupee className="h-4 w-4 text-[color:var(--color-primary)]" />
+                    </div>
+                    <div className="mt-3 space-y-2 text-xs">
+                      <div className="flex items-center justify-between text-text-muted">
+                        <span>Evening rush</span>
+                        <span className="font-semibold text-text">4.7 ★</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-[color:var(--color-surface-muted)]">
+                        <div className="h-2 w-5/6 rounded-full bg-gradient-to-r from-[#7b5dff] to-[#f95763]" />
+                      </div>
+                      <div className="flex items-center justify-between text-text-muted">
+                        <span>Repeat customers</span>
+                        <span className="font-semibold text-text">89%</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-[color:var(--color-surface-muted)]">
+                        <div className="h-2 w-4/5 rounded-full bg-gradient-to-r from-[#43cea2] to-[#185a9d]" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-              {/* Background Decoration */}
-              <div className="absolute -z-10 top-8 -right-8 w-64 h-64 bg-blue-200 rounded-full blur-3xl opacity-30"></div>
-              <div className="absolute -z-10 bottom-8 -left-8 w-48 h-48 bg-purple-200 rounded-full blur-3xl opacity-30"></div>
+                <div className="surface-card rounded-2xl p-4">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-8 w-8 rounded-2xl bg-[rgba(249,87,99,0.12)] p-2 text-[#f95763]" />
+                    <div>
+                      <p className="text-sm font-semibold text-text">Trending pockets</p>
+                      <p className="text-xs text-text-muted">Colaba · Indiranagar · Bandra · Khar West</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {['🍲 Dosa Labs', '🥬 Farm2Door', '🗝️ Singh Keysmith', '☕ Filter Stories'].map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full bg-[color:var(--color-surface-muted)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-text"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-5xl font-bold text-gray-900 mb-4">
-              Why Choose <span className="text-blue-600">Aas Paas</span>?
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              We're redefining how you discover and connect with local businesses
+      <section className="relative py-16 sm:py-20">
+        <div className="container-custom space-y-14">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-text sm:text-4xl">Why locals trust Aas Paas</h2>
+            <p className="mt-3 text-base text-text-muted sm:text-lg">
+              From onboarding to discovery, every touchpoint is designed for warmth, trust, and delight.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-            {features.map((feature, index) => {
-              const Icon = feature.icon
-              return (
-                <div 
-                  key={index}
-                  className="group relative"
-                >
-                  <div className="relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl border border-gray-100 transition-all duration-500 transform hover:-translate-y-2">
-                    <div className={`relative mb-6 inline-flex p-4 rounded-2xl bg-gradient-to-r ${feature.color} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className="w-8 h-8 text-white" />
-                      <div className="absolute inset-0 bg-white/20 rounded-2xl blur-sm group-hover:blur-md transition-all duration-300"></div>
-                    </div>
-
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 text-lg leading-relaxed">
-                      {feature.description}
-                    </p>
-
-                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-50 to-cyan-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
-                  </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {featureTiles.map((feature) => (
+              <div
+                key={feature.title}
+                className="group glass-card rounded-3xl p-6 transition hover:-translate-y-[4px]"
+              >
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--color-primary)]/15 text-[color:var(--color-primary)] transition group-hover:scale-[1.05]">
+                  <feature.icon className="h-5 w-5" />
                 </div>
-              )
-            })}
-          </div>
-
-          {/* CTA Section */}
-          <div className="text-center mt-16">
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-3xl p-12 text-white shadow-2xl">
-              <h3 className="text-3xl sm:text-4xl font-bold mb-4">
-                Ready to Explore?
-              </h3>
-              <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                Join thousands of users discovering amazing local businesses every day
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  onClick={() => navigate('/search')}
-                  className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
-                >
-                  Start Exploring
-                </Button>
-                <Button
-                  onClick={() => navigate(isAuthenticated && role === 'vendor' ? '/vendor/my-shop' : '/signup/vendor')}
-                  variant="outline"
-                  className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300"
-                >
-                  List Your Business
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
+                <h3 className="text-lg font-semibold text-text">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-text-muted">{feature.description}</p>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(40px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(1deg); }
-        }
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-25px) rotate(-1deg); }
-        }
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) scale(1); }
-          50% { transform: translateY(-15px) scale(1.05); }
-        }
-        .typing-cursor {
-          animation: blink 1s infinite;
-        }
-        @keyframes blink {
-          0%, 50% { opacity: 1; }
-          51%, 100% { opacity: 0; }
-        }
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out;
-        }
-        .animate-float {
-          animation: float 8s ease-in-out infinite;
-        }
-        .animate-float-delayed {
-          animation: float-delayed 10s ease-in-out infinite;
-        }
-        .animate-float-slow {
-          animation: float-slow 12s ease-in-out infinite;
-        }
-      `}</style>
+      <section className="relative bg-[color:var(--color-surface)]/65 py-16 sm:py-20">
+        <div className="container-custom space-y-12">
+          <div className="flex flex-col gap-3 text-center">
+            <h2 className="text-3xl font-semibold text-text sm:text-4xl">Browse vibrant neighbourhoods</h2>
+            <p className="text-base text-text-muted sm:text-lg">Curated categories help you land exactly where you belong.</p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {categoryGrid.map((category) => (
+              <button
+                key={category.title}
+                onClick={() => navigate(`/search?q=${encodeURIComponent(category.title)}`)}
+                className="glass-card rounded-3xl px-6 py-8 text-left transition hover:-translate-y-[4px]"
+              >
+                <div className={`inline-flex rounded-2xl bg-gradient-to-br ${category.accent} px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white`}>
+                  {category.count} listings
+                </div>
+                <p className="mt-6 text-2xl font-semibold text-text">{category.title}</p>
+                <p className="mt-2 text-sm text-text-muted">
+                  Discover {category.title.toLowerCase()} curated by locals and loved by regulars.
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative py-16 sm:py-20">
+        <div className="container-custom grid gap-10 rounded-[32px] p-8 lg:grid-cols-[0.9fr_1.1fr] glass-card">
+          <div className="space-y-4">
+            <h2 className="text-3xl font-semibold text-text sm:text-4xl">Vendors, shine with Aas Paas</h2>
+            <p className="text-base text-text-muted sm:text-lg">
+              No jargon, no hidden fees. Simply capture what makes you special and reach your neighbourhood digitally.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                variant="primary"
+                className="justify-center"
+                onClick={() => navigate(isAuthenticated && role === 'vendor' ? '/vendor/my-shop' : '/signup/vendor')}
+                icon={<Compass className="h-4 w-4" />}
+                iconPosition="right"
+              >
+                Launch your listing
+              </Button>
+              <Button variant="outline" className="justify-center" onClick={() => navigate('/contact')}>
+                Talk to our team
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {vendorSteps.map((step, index) => (
+              <div key={step.title} className="surface-card rounded-3xl p-5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(123,93,255,0.12)] text-sm font-semibold text-[color:var(--color-primary)]">
+                  {index + 1}
+                </div>
+                <h3 className="mt-4 text-sm font-semibold uppercase tracking-[0.24em] text-text-muted">
+                  Step {index + 1}
+                </h3>
+                <p className="mt-1 text-base font-semibold text-text">{step.title}</p>
+                <p className="mt-2 text-sm leading-relaxed text-text-muted">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative py-16 sm:py-20">
+        <div className="container-custom grid gap-10 lg:grid-cols-2">
+          {testimonials.map((testimonial) => (
+            <div
+              key={testimonial.name}
+              className="glass-card rounded-[28px] p-8"
+            >
+              <div className="flex items-center gap-3 text-[rgba(123,93,255,0.8)]">
+                <Star className="h-6 w-6 fill-current" />
+                <span className="text-xs font-semibold uppercase tracking-[0.24em]">Community voices</span>
+              </div>
+              <p className="mt-6 text-lg leading-relaxed text-text">
+                “{testimonial.quote}”
+              </p>
+              <div className="mt-6 space-y-1 text-sm">
+                <p className="font-semibold text-text">{testimonial.name}</p>
+                <p className="text-text-muted">{testimonial.role}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

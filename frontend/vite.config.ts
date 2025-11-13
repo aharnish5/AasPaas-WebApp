@@ -9,6 +9,21 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          redux: ['react-redux', '@reduxjs/toolkit'],
+          query: ['@tanstack/react-query', '@tanstack/react-query-devtools'],
+          motion: ['framer-motion'],
+          charts: ['recharts'],
+          map: ['mapbox-gl'],
+        },
+      },
+    },
+  },
   server: {
     port: 3000,
     proxy: {

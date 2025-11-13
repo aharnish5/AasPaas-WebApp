@@ -95,7 +95,7 @@ const Favorites = () => {
           <button
             type="button"
             className="btn-gradient inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]"
-            onClick={() => navigate('/customer/feed')}
+            onClick={() => navigate('/customer/')}
           >
             Explore nearby
           </button>

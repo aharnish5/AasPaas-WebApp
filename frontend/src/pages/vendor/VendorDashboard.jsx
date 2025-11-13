@@ -177,21 +177,22 @@ const VendorDashboard = () => {
             {shops.map((shop) => {
               const statusAppearance = getStatusAppearance(shop.status)
               return (
-                <div key={shop._id} className="relative">
-                  <ShopCard shop={shop} />
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span
-                      className="status-pill capitalize"
-                      style={statusAppearance}
-                    >
-                      {shop.status || 'pending'}
-                    </span>
-                    {shop.views > 0 && (
-                      <span className="text-xs font-medium text-text-muted">
-                        {shop.views} {shop.views === 1 ? 'view' : 'views'}
-                      </span>
+                <div key={shop._id}>
+                  <ShopCard
+                    shop={shop}
+                    extraFooter={(
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="status-pill capitalize" style={statusAppearance}>
+                          {shop.status || 'pending'}
+                        </span>
+                        {shop.views > 0 && (
+                          <span className="rounded-full border border-border/60 bg-[color:var(--color-surface)]/80 px-2.5 py-1 text-xs font-medium text-text shadow-[var(--shadow-xs)] backdrop-blur">
+                            {shop.views} {shop.views === 1 ? 'view' : 'views'}
+                          </span>
+                        )}
+                      </div>
                     )}
-                  </div>
+                  />
                 </div>
               )
             })}

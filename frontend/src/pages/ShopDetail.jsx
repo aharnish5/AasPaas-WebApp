@@ -3,13 +3,14 @@ import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchShopById } from '../store/slices/shopsSlice'
 import { shopAPI } from '../services/api'
-import { MapPin, Star, Clock, Phone, Heart, IndianRupee, ThumbsUp, Pencil, Trash } from 'lucide-react'
+import { MapPin, Clock, Phone, Heart, IndianRupee, ThumbsUp, Pencil, Trash } from 'lucide-react'
 import ShopImageCarousel from '../components/shop/ShopImageCarousel'
 import VendorMapEmbed from '../components/map/VendorMapEmbed'
 import { reviewAPI, favoritesAPI } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
 import { fetchShopReviews, createReview } from '../store/slices/reviewsSlice'
 import Modal from '../components/ui/Modal'
+import StarRating from '../components/ui/StarRating'
 
 const ShopDetail = () => {
   const { shopId } = useParams()
@@ -157,12 +158,10 @@ const ShopDetail = () => {
               </h1>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-primary">
-                <Star className="h-4 w-4 fill-current" />
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-primary">
+                <StarRating value={rating} readOnly size="sm" />
                 <span className="font-semibold">{rating.toFixed(1)}</span>
-                <span className="text-[0.65rem] uppercase tracking-[0.16em] text-primary/70">
-                  ({reviewCount} reviews)
-                </span>
+                <span className="text-[0.65rem] uppercase tracking-[0.16em] text-primary/70">({reviewCount} reviews)</span>
               </span>
               {selectedShop.priceRange && (
                 <span className="status-pill bg-secondary/15 text-secondary">
@@ -187,7 +186,10 @@ const ShopDetail = () => {
             className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/85 text-danger shadow-[var(--shadow-xs)] transition-colors hover:bg-[color:var(--color-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
             aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <Heart className={`h-6 w-6 transition-colors ${favorited ? 'fill-danger text-danger' : 'text-danger/60'}`} />
+            <Heart
+              fill={favorited ? 'currentColor' : 'none'}
+              className={`h-6 w-6 transition-colors ${favorited ? 'text-danger' : 'text-danger/60'}`}
+            />
           </button>
         </div>
       </div>
@@ -321,9 +323,7 @@ const ShopDetail = () => {
               <form onSubmit={submitReview} className="space-y-3">
                 <div>
                   <label className="input-label">Rating</label>
-                  <select value={formRating} onChange={(e)=>setFormRating(parseInt(e.target.value))} className="input-field">
-                    {[5,4,3,2,1].map(r => <option key={r} value={r}>{r} stars</option>)}
-                  </select>
+                  <StarRating value={formRating} onChange={setFormRating} size="lg" />
                 </div>
                 <div>
                   <label className="input-label">Your review</label>
@@ -365,10 +365,14 @@ const ShopDetail = () => {
           <div className="space-y-4">
             {reviewsState.reviews.map(r => (
               <div key={r._id} className="surface-card rounded-3xl p-4 shadow-[var(--shadow-xs)]">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Star className="h-4 w-4 text-[color:var(--color-primary)]" />
-                    <span className="font-semibold text-text">{r.rating}</span>
+                <div className="mb-2 flex items-start justify-between">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-text">
+                      {r.userId?.name || 'Customer'}
+                    </div>
+                    <div className="mt-1">
+                      <StarRating value={r.rating} readOnly size="sm" />
+                    </div>
                   </div>
                   <span className="text-xs uppercase tracking-[0.18em] text-text-muted/70">
                     {new Date(r.createdAt).toLocaleDateString()}
@@ -425,9 +429,7 @@ const ShopDetail = () => {
                   >
                     <div className="flex items-center gap-2">
                       <label className="text-sm font-semibold text-text-muted">Rating</label>
-                      <select value={editRating} onChange={(e)=>setEditRating(parseInt(e.target.value))} className="input-field">
-                        {[5,4,3,2,1].map(r => <option key={r} value={r}>{r} stars</option>)}
-                      </select>
+                      <StarRating value={editRating} onChange={setEditRating} />
                     </div>
                     <textarea value={editText} onChange={(e)=>setEditText(e.target.value)} className="input-field" rows={3} />
                     <div className="flex gap-2">

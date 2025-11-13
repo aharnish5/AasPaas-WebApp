@@ -86,10 +86,12 @@
     font-feature-settings: 'case' 1, 'rlig' 1, 'calt' 1;
     line-height: 1.6;
     min-height: 100vh;
-    background-image: radial-gradient(circle at 12% 18%, rgba(123, 93, 255, 0.18), transparent 52%),
-      radial-gradient(circle at 88% 22%, rgba(249, 87, 99, 0.22), transparent 58%),
-      radial-gradient(circle at 18% 85%, rgba(109, 205, 164, 0.16), transparent 52%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(236, 232, 255, 0.82));
+    /* Token-aware background that works for light and dark */
+    background:
+      radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--color-primary) 18%, transparent) 0%, transparent 52%),
+      radial-gradient(circle at 88% 22%, color-mix(in srgb, var(--color-secondary) 22%, transparent) 0%, transparent 58%),
+      radial-gradient(circle at 18% 85%, color-mix(in srgb, var(--color-accent) 16%, transparent) 0%, transparent 52%),
+      linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 92%, transparent), color-mix(in srgb, var(--color-background) 88%, transparent));
   }
 
   body::before {
@@ -97,11 +99,10 @@
     position: fixed;
     inset: 0;
     pointer-events: none;
-    background: radial-gradient(circle at 50% -10%, rgba(123, 93, 255, 0.35), transparent 55%),
-      radial-gradient(circle at 100% 20%, rgba(255, 139, 167, 0.3), transparent 65%),
-      radial-gradient(circle at -10% 80%, rgba(103, 92, 250, 0.32), transparent 60%);
-    filter: blur(60px);
-    opacity: 0.75;
+    background:
+      radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--color-primary) 35%, transparent), transparent 55%),
+      radial-gradient(circle at 100% 20%, color-mix(in srgb, var(--color-secondary) 30%, transparent), transparent 65%),
+      radial-gradient(circle at -10% 80%, color-mix(in srgb, var(--color-primary) 28%, transparent), transparent 60%);
     z-index: -2;
   }
 
@@ -135,7 +136,8 @@
   }
 
   a:hover {
-    color: var(--color-primary-foreground);
+    /* Safer hover color to avoid full white/black flips */
+    color: color-mix(in srgb, var(--color-primary) 86%, var(--color-text) 14%);
   }
 
   :focus-visible {
@@ -460,6 +462,15 @@
 
   .heading-gradient {
     background: linear-gradient(120deg, #1f1f3f 0%, #4a2fcb 40%, #f95763 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* High-contrast logo text for dark mode */
+  .dark .heading-gradient,
+  [data-mode='dark'] .heading-gradient {
+    background: linear-gradient(120deg, #e4e8ff 0%, #8f82ff 42%, #ff9db4 100%);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;

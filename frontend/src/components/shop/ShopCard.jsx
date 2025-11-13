@@ -5,7 +5,7 @@ import { favoritesAPI } from '../../services/api'
 import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../../utils/cn'
 
-const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChange }) => {
+const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChange, extraFooter }) => {
   const { isAuthenticated, role } = useAuth()
   const [favorited, setFavorited] = useState(false)
   const [checkingFav, setCheckingFav] = useState(true)
@@ -66,7 +66,7 @@ const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChang
       to={`/shop/${shop._id}`}
       onClick={onClick}
       className={cn(
-        'surface-card group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-[color:var(--color-surface)]/85 shadow-[var(--shadow-sm)] backdrop-blur transition-transform duration-200 hover:-translate-y-[6px] hover:shadow-[var(--shadow-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'glass-card group relative flex h-full flex-col overflow-hidden rounded-3xl transition-transform duration-200 hover:-translate-y-[6px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         compact ? 'pb-4' : 'pb-5'
       )}
     >
@@ -90,7 +90,7 @@ const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChang
           </div>
         )}
 
-        {distanceKm !== undefined && (
+        {typeof distanceKm === 'number' && !Number.isNaN(distanceKm) && (
           <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-white/40 bg-white/80 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-text shadow-sm backdrop-blur">
             <MapPin className="h-3.5 w-3.5" />
             {distanceKm.toFixed(1)} km
@@ -104,7 +104,10 @@ const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChang
           aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
           title={favorited ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <Heart className={cn('h-5 w-5 transition-colors', favorited ? 'fill-danger text-danger' : 'text-danger/60')} />
+          <Heart
+            fill={favorited ? 'currentColor' : 'none'}
+            className={cn('h-5 w-5 transition-colors', favorited ? 'text-danger' : 'text-danger/60')}
+          />
         </button>
       </div>
 
@@ -186,6 +189,8 @@ const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChang
             )
           })()
         )}
+
+        {extraFooter ? <div className="pt-2">{extraFooter}</div> : null}
       </div>
     </Link>
   )

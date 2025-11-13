@@ -128,7 +128,7 @@ const VendorShops = () => {
                       <Store className="h-12 w-12 text-[color:var(--color-primary)]" style={{ opacity: 0.4 }} />
                     </div>
                   )}
-                  <div className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${statusClass}`}>
+                  <div className={`absolute right-3 top-3 max-w-[80%] truncate whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${statusClass}`}>
                     {statusLabel}
                   </div>
                 </div>

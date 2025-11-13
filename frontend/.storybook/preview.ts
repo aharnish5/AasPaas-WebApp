@@ -1,1 +1,2 @@
-export { default } from './preview.tsx'
+// Storybook removed. File intentionally left blank.
+export default {}

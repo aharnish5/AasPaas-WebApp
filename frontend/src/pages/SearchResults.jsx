@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchShops, clearError } from '../store/slices/shopsSlice'
 import ShopCard from '../components/shop/ShopCard'
-import { Search, MapPin, Navigation } from 'lucide-react'
+import { Search, MapPin, Navigation, Filter } from 'lucide-react'
 import CityAreaSelector from '../components/search/CityAreaSelector'
-import ShopMap from '../components/map/ShopMap'
 import { useGeolocation } from '../hooks/useGeolocation'
 import { shopAPI } from '../services/api'
 import { checkGeolocationPermission } from '../utils/permissions'
+import Button from '../components/ui/Button'
 
 const SearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -20,26 +20,24 @@ const SearchResults = () => {
   const [isGettingLocation, setIsGettingLocation] = useState(false)
   const [hasRequestedLocation, setHasRequestedLocation] = useState(false)
   const [permissionStatus, setPermissionStatus] = useState(null)
+  // Map view is deprecated; always show list
 
-  // Check permission status on mount
   useEffect(() => {
     checkGeolocationPermission().then((status) => {
       setPermissionStatus(status)
-      console.log('Geolocation permission status:', status)
     })
   }, [])
-  
+
   const [filters, setFilters] = useState({
     category: '',
     minRating: '',
-    radius: 3000, // meters for new POST /shops/search endpoint
+    radius: 3000,
     priceRange: '',
     maxAveragePrice: '',
   })
-  // Local input state to avoid firing searches on every keystroke
   const [maxAvgInput, setMaxAvgInput] = useState('')
-  const [cityMeta, setCityMeta] = useState(null) // { city, city_slug, cityCenter, area, area_slug, areaPoint }
-  const [advancedResults, setAdvancedResults] = useState(null) // response from POST /shops/search
+  const [cityMeta, setCityMeta] = useState(null)
+  const [advancedResults, setAdvancedResults] = useState(null)
   const [advLoading, setAdvLoading] = useState(false)
   const [advError, setAdvError] = useState(null)
 
@@ -48,131 +46,100 @@ const SearchResults = () => {
   const query = searchParams.get('q')
   const hasSearchParams = Boolean((lat && lon) || (query && query.trim()))
 
-  // Clear error when component mounts or search params change
   useEffect(() => {
     dispatch(clearError())
-    // Reset location request state when params change
     setHasRequestedLocation(false)
     setIsGettingLocation(false)
-    // Force header to refresh when search params change
     setLocationName(null)
   }, [dispatch, lat, lon, query])
 
-  // When geolocation is obtained (from button click), update URL with coords and reverse geocode
   useEffect(() => {
     if (geolocation.coordinates && isGettingLocation) {
       const { latitude, longitude } = geolocation.coordinates
-      
-      // Update URL with coordinates (preserve existing text query if any)
       const newParams = {}
       if (query && query.trim()) newParams.q = query.trim()
       newParams.lat = latitude.toString()
       newParams.lon = longitude.toString()
       setSearchParams(newParams)
-      
-      // Reverse geocode to get location name
-      shopAPI.reverseGeocode(latitude, longitude)
+      shopAPI
+        .reverseGeocode(latitude, longitude)
         .then((response) => {
           const loc = response.data.location
-          console.log('Reverse geocode response:', loc)
-          
-          // Prioritize locality (area), then city
           let name = loc.locality || loc.city || loc.displayName || ''
-          
-          // If still empty, try to extract from formatted address
           if (!name && loc.formattedAddress) {
             const parts = loc.formattedAddress.split(',')
-            // Find a city-like name (not a number, not too short, not "India")
             for (let i = parts.length - 1; i >= 0; i--) {
               const part = parts[i].trim()
-              if (part.length > 2 && !/^\d+$/.test(part) && part !== 'India' && !part.includes('Location at')) {
+              if (part.length > 2 && !/^[0-9]+$/.test(part) && part !== 'India') {
                 name = part
                 break
               }
             }
           }
-          
-          // Final fallback
-          if (!name || name.includes('Location (')) {
-            name = 'Your location'
-          }
-          
+          if (!name) name = 'Your location'
           setLocationName(name)
-          console.log('Location name set:', name, 'Full location data:', loc)
         })
-        .catch((err) => {
-          console.error('Reverse geocode error:', err)
-          // Don't show coordinates - just show "Your location"
-          setLocationName('Your location')
-        })
-      
+        .catch(() => setLocationName('Your location'))
       setIsGettingLocation(false)
     } else if (geolocation.error && isGettingLocation) {
-      // Reset getting location state if there was an error
       setIsGettingLocation(false)
     }
-  }, [geolocation.coordinates, geolocation.error, isGettingLocation, lat, lon, query, setSearchParams])
+  }, [geolocation.coordinates, geolocation.error, isGettingLocation, query, setSearchParams])
 
-  // Reverse geocode when coordinates are in URL (disabled when advanced city/area is active)
   useEffect(() => {
-    if (cityMeta?.city_slug) return; // advanced flow sets its own header
+    if (cityMeta?.city_slug) return
     if (lat && lon) {
-      shopAPI.reverseGeocode(parseFloat(lat), parseFloat(lon))
+      shopAPI
+        .reverseGeocode(parseFloat(lat), parseFloat(lon))
         .then((response) => {
           const loc = response.data.location
-          console.log('Reverse geocode response:', loc)
-          
-          // Prioritize locality (area), then city
           let name = loc.locality || loc.city || loc.displayName || ''
-          
-          // If still empty, try to extract from formatted address
           if (!name && loc.formattedAddress) {
             const parts = loc.formattedAddress.split(',')
-            // Find a city-like name (not a number, not too short, not "India")
             for (let i = parts.length - 1; i >= 0; i--) {
               const part = parts[i].trim()
-              if (part.length > 2 && !/^\d+$/.test(part) && part !== 'India' && !part.includes('Location at')) {
+              if (part.length > 2 && !/^[0-9]+$/.test(part) && part !== 'India') {
                 name = part
                 break
               }
             }
           }
-          
-          // Final fallback
-          if (!name || name.includes('Location (')) {
-            name = 'Your location'
-          }
-          
+          if (!name) name = 'Your location'
           setLocationName(name)
-          console.log('Location name set:', name, 'Full location:', loc)
         })
-        .catch((err) => {
-          console.error('Reverse geocode error:', err)
-          // Don't show coordinates - just show "Your location"
-          setLocationName('Your location')
-        })
+        .catch(() => setLocationName('Your location'))
     }
   }, [lat, lon, cityMeta?.city_slug])
 
-  // Legacy GET /shops fallback still supported for non-city-based browsing
   useEffect(() => {
-    if (cityMeta?.city_slug && cityMeta?.areaPoint) return; // advanced search will handle
+    if (cityMeta?.city_slug && cityMeta?.areaPoint) return
     const params = {}
-    if (lat && lon) { params.lat = lat; params.lon = lon }
-    if (query && query.trim()) { params.q = query.trim() }
+    if (lat && lon) {
+      params.lat = lat
+      params.lon = lon
+    }
+    if (query && query.trim()) {
+      params.q = query.trim()
+    }
     if (filters.category) params.category = filters.category
     if (filters.minRating) params.minRating = filters.minRating
-  if (filters.priceRange) params.priceRange = filters.priceRange
-  if (filters.maxAveragePrice) params.maxAveragePrice = filters.maxAveragePrice
-    if (lat && lon) { params.radius = (filters.radius/1000) || 3; params.sort = 'proximity' }
+    if (filters.priceRange) params.priceRange = filters.priceRange
+    if (filters.maxAveragePrice) params.maxAveragePrice = filters.maxAveragePrice
+    if (lat && lon) {
+      params.radius = filters.radius / 1000 || 3
+      params.sort = 'proximity'
+    }
     dispatch(fetchShops(params))
   }, [dispatch, lat, lon, query, filters, cityMeta?.city_slug, cityMeta?.areaPoint])
 
-  // Advanced authoritative radius search using POST /shops/search
   useEffect(() => {
     async function run() {
-      if (!cityMeta?.city_slug || !cityMeta?.areaPoint) { setAdvancedResults(null); return }
-      setAdvLoading(true); setAdvError(null)
+      if (!cityMeta?.city_slug || !cityMeta?.areaPoint) {
+        setAdvancedResults(null)
+        return
+      }
+      setAdvLoading(true)
+      setAdvError(null)
       try {
         const body = {
           city_slug: cityMeta.city_slug,
@@ -195,396 +162,283 @@ const SearchResults = () => {
       }
     }
     run()
-  }, [cityMeta?.city_slug, cityMeta?.areaPoint?.lat, cityMeta?.areaPoint?.lon, filters.radius, filters.category, filters.minRating, query])
+  }, [cityMeta?.city_slug, cityMeta?.areaPoint?.lat, cityMeta?.areaPoint?.lon, filters.radius, filters.category, filters.minRating, filters.priceRange, filters.maxAveragePrice, query])
+
+  const handleLocationClick = () => {
+    setIsGettingLocation(true)
+    setHasRequestedLocation(true)
+    setLocationName(null)
+    getLocation()
+  }
+
+  const activeShops = useMemo(
+    () => (cityMeta?.city_slug ? advancedResults?.shops || [] : shops),
+    [advancedResults?.shops, cityMeta?.city_slug, shops]
+  )
+
+  const totalResults = useMemo(() => {
+    if (cityMeta?.city_slug) {
+      return advancedResults?.shops?.length || 0
+    }
+    return shops.length
+  }, [advancedResults?.shops?.length, cityMeta?.city_slug, shops.length])
+
+  const mapCenter = useMemo(() => {
+    if (cityMeta?.areaPoint) {
+      return { lat: cityMeta.areaPoint.lat, lon: cityMeta.areaPoint.lon }
+    }
+    if (cityMeta?.cityCenter) {
+      return cityMeta.cityCenter
+    }
+    if (lat && lon) {
+      return { lat: parseFloat(lat), lon: parseFloat(lon) }
+    }
+    return null
+  }, [cityMeta?.areaPoint, cityMeta?.cityCenter, lat, lon])
+
+  // Map preview removed
 
   if (loading) {
     return (
       <div className="container-custom py-12">
-        <div className="grid gap-6 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="surface-card animate-pulse p-5">
-              <div
-                className="mb-4 h-48 rounded-2xl"
-                style={{ background: 'color-mix(in srgb, var(--color-surface-muted) 80%, transparent)' }}
-              />
-              <div
-                className="mb-2 h-4 w-3/4 rounded-full"
-                style={{ background: 'color-mix(in srgb, var(--color-surface-muted) 75%, transparent)' }}
-              />
-              <div
-                className="h-4 w-1/2 rounded-full"
-                style={{ background: 'color-mix(in srgb, var(--color-surface-muted) 70%, transparent)' }}
-              />
-            </div>
-          ))}
+        <div className="space-y-6">
+          <div className="h-40 rounded-[32px] glass-card animate-pulse" />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="h-72 rounded-3xl glass-card animate-pulse" />
+            ))}
+          </div>
         </div>
       </div>
     )
   }
 
-  // Show error only if it's a real error (not just no results)
   if (error && error !== 'Failed to fetch shops') {
     return (
       <div className="container-custom py-12">
-        <div className="text-center">
-          <div className="alert alert-danger mx-auto max-w-md space-y-2 text-left">
-            <p className="alert-title">Error</p>
-            <p className="alert-description">{error}</p>
-            <button
-              onClick={() => {
-                dispatch(clearError())
-                window.location.href = '/search'
-              }}
-              type="button"
-              className="text-sm font-semibold text-[color:var(--color-danger)] underline-offset-4 hover:underline"
-            >
-              Try again
-            </button>
-          </div>
+        <div className="mx-auto max-w-md rounded-3xl border border-[color:var(--color-danger)]/40 bg-[color:var(--color-danger)]/10 p-6 text-center shadow-[var(--shadow-md)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[color:var(--color-danger)]">Error</p>
+          <p className="mt-2 text-sm text-text">{error}</p>
+          <Button
+            variant="outline"
+            className="mt-4 justify-center text-[color:var(--color-danger)]"
+            onClick={() => {
+              dispatch(clearError())
+              window.location.href = '/search'
+            }}
+          >
+            Try again
+          </Button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container-custom py-6">
-      <div className="flex flex-col gap-6 lg:flex-row">
-        {/* Filters Sidebar */}
-        <aside className="lg:w-64">
-          <div className="card">
-            <h2 className="text-lg font-semibold mb-4">Filters</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="input-label">Category</label>
-                <select
-                  className="input-field"
-                  value={filters.category}
-                  onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                >
-                  <option value="">All</option>
-                  <option value="food">Food</option>
-                  <option value="clothing">Clothing</option>
-                  <option value="electronics">Electronics</option>
-                  <option value="services">Services</option>
-                  <option value="other">Other</option>
-                </select>
+    <div className="relative">
+      <div className="pointer-events-none absolute inset-x-0 top-[-20%] z-0 h-[280px] bg-[radial-gradient(circle_at_top,rgba(123,93,255,0.16),transparent_65%)]" />
+      <div className="container-custom relative space-y-10 py-10">
+        <div className="glass-card rounded-[32px] p-6">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-3 rounded-full bg-[color:var(--color-surface-muted)]/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-text-muted">
+                <Filter className="h-3.5 w-3.5" />
+                Search results
               </div>
               <div>
-                <label className="input-label">Minimum Rating</label>
-                <select
-                  className="input-field"
-                  value={filters.minRating}
-                  onChange={(e) => setFilters({ ...filters, minRating: e.target.value })}
-                >
-                  <option value="">Any</option>
-                  <option value="4">4+ Stars</option>
-                  <option value="3">3+ Stars</option>
-                </select>
-              </div>
-              <div>
-                <label className="input-label">Price Category</label>
-                <select
-                  className="input-field"
-                  value={filters.priceRange}
-                  onChange={(e) => setFilters({ ...filters, priceRange: e.target.value })}
-                >
-                  <option value="">Any</option>
-                  <option value="low">Budget</option>
-                  <option value="medium">Moderate</option>
-                  <option value="high">Premium</option>
-                </select>
-              </div>
-              <div>
-                <label className="input-label">Max Average Price (₹)</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className="input-field"
-                  value={maxAvgInput}
-                  onChange={(e) => {
-                    const onlyDigits = (e.target.value || '').replace(/\D+/g, '')
-                    setMaxAvgInput(onlyDigits)
-                  }}
-                  onBlur={() => {
-                    if (maxAvgInput !== (filters.maxAveragePrice || '')) {
-                      setFilters({ ...filters, maxAveragePrice: maxAvgInput })
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      e.currentTarget.blur()
-                    }
-                  }}
-                  placeholder="e.g., 500"
-                  aria-label="Set maximum average price"
-                />
-              </div>
-              {(lat && lon) && !cityMeta?.city_slug && (
-                <div>
-                  <label className="input-label">Search Radius (km)</label>
-                  <select
-                    className="input-field"
-                    value={Math.round(filters.radius/1000)}
-                    onChange={(e) => setFilters({ ...filters, radius: parseInt(e.target.value)*1000 })}
-                  >
-                    <option value="2">2 km</option>
-                    <option value="3">3 km</option>
-                    <option value="5">5 km</option>
-                    <option value="10">10 km</option>
-                    <option value="25">25 km</option>
-                    <option value="50">50 km (City-wide)</option>
-                  </select>
-                </div>
-              )}
-              {cityMeta?.city_slug && (
-                <div>
-                  <label className="input-label">Radius (km)</label>
-                  <select
-                    className="input-field"
-                    value={Math.round(filters.radius/1000)}
-                    onChange={(e) => setFilters({ ...filters, radius: parseInt(e.target.value)*1000 })}
-                  >
-                    <option value="1">1 km</option>
-                    <option value="2">2 km</option>
-                    <option value="3">3 km</option>
-                    <option value="5">5 km</option>
-                    <option value="10">10 km</option>
-                  </select>
-                </div>
-              )}
-              <div>
-                <label className="input-label">City & Area</label>
-                <CityAreaSelector onChange={(meta) => setCityMeta(meta)} />
-                {cityMeta?.city && cityMeta?.area && (
-                  <p className="text-xs text-gray-500 mt-1">Selected: {cityMeta.area}, {cityMeta.city}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* Results */}
-        <main className="flex-1">
-          <div className="mb-6">
-            <div className="mb-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex-1">
-                <h1 className="mb-2 text-3xl font-semibold tracking-[-0.02em] text-text">
-                  {cityMeta?.city && cityMeta?.area ? (
-                    <span className="flex items-center gap-2">
-                      <MapPin className="h-6 w-6 text-[color:var(--color-accent)]" />
-                      Shops near {cityMeta.area}
-                    </span>
-                  ) : locationName ? (
-                    <span className="flex items-center gap-2">
-                      <MapPin className="h-6 w-6 text-[color:var(--color-accent)]" />
-                      Shops near {locationName}
-                    </span>
-                  ) : hasSearchParams ? (
-                    'Search Results'
-                  ) : (
-                    'All Shops'
-                  )}
+                <h1 className="text-3xl font-semibold leading-tight text-text sm:text-4xl">
+                  {cityMeta?.city && cityMeta?.area
+                    ? `Shops near ${cityMeta.area}, ${cityMeta.city}`
+                    : locationName
+                    ? `Shops near ${locationName}`
+                    : hasSearchParams
+                    ? 'Personalised results'
+                    : 'All neighbourhood shops'}
                 </h1>
-                {(cityMeta?.city && cityMeta?.area) ? (
-                  <div className="flex flex-wrap items-center gap-2 text-sm text-text-muted">
-                    <span className="flex items-center gap-1 text-text">
-                      <MapPin className="h-4 w-4 text-[color:var(--color-primary)]" />
-                      <span className="font-medium">{cityMeta.area}, {cityMeta.city}</span>
-                    </span>
-                    <span className="text-text-muted/70">•</span>
-                    <span>
-                      {(advancedResults?.shops?.length || 0) > 0
-                        ? (() => {
-                            const r = Number(filters.radius);
-                            const km = r/1000; const display = km >= 1 ? `${km%1===0?km.toFixed(0):km.toFixed(1)} km` : `${r.toFixed(0)} m`;
-                            return `${advancedResults.shops.length} ${advancedResults.shops.length === 1 ? 'shop' : 'shops'} found within ${display}`;
-                          })()
-                        : 'No shops found nearby'}
-                    </span>
-                  </div>
-                ) : (locationName && lat && lon) && (
-                  <div className="flex flex-wrap items-center gap-2 text-sm text-text-muted">
-                    <span className="flex items-center gap-1 text-text">
-                      <MapPin className="h-4 w-4 text-[color:var(--color-primary)]" />
-                      <span className="font-medium">{locationName}</span>
-                    </span>
-                    <span className="text-text-muted/70">•</span>
-                    <span>
-                      {shops.length > 0 
-                        ? (() => {
-                            const r = Number(filters.radius);
-                            if (!Number.isFinite(r) || r <= 0) return `${shops.length} ${shops.length === 1 ? 'shop' : 'shops'}`;
-                            // radius stored in meters; display intelligently
-                            const km = r / 1000;
-                            const display = km >= 1 ? `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km` : `${r.toFixed(0)} m`;
-                            return `${shops.length} ${shops.length === 1 ? 'shop' : 'shops'} found within ${display}`;
-                          })()
-                        : 'No shops found nearby'}
-                    </span>
-                  </div>
-                )}
+                <p className="mt-2 text-sm text-text-muted">
+                  {totalResults} {totalResults === 1 ? 'listing' : 'listings'}
+                  {filters.radius && ` · within ${(filters.radius / 1000).toFixed(0)} km`}
+                  {query && ` · matching “${query}”`}
+                </p>
               </div>
-              {/* Always show location button to allow overriding/adding coordinates */}
-              {true && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    console.log('Use My Location button clicked')
-                    setIsGettingLocation(true)
-                    setHasRequestedLocation(true)
-                    setLocationName(null)
-                    // Call getLocation directly from button click (required by browsers)
-                    getLocation()
-                  }}
-                  disabled={geolocation.loading || isGettingLocation}
-                  className="btn-gradient inline-flex items-center gap-2 whitespace-nowrap text-xs font-semibold uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-60"
-                  title="Click to allow location access and find nearby shops"
-                  type="button"
-                >
-                  {geolocation.loading || isGettingLocation ? (
-                    <>
-                      <span className="inline-block animate-spin">⏳</span>
-                      Locating…
-                    </>
-                  ) : (
-                    <>
-                      <Navigation className="h-4 w-4" />
-                      Use My Location
-                    </>
-                  )}
-                </button>
-              )}
             </div>
-            
-            {geolocation.loading && (
-              <p className="mb-2 flex items-center gap-2 text-sm text-text-muted">
-                <span className="inline-block animate-spin">⏳</span>
-                Detecting your location...
-              </p>
-            )}
-            
-            {geolocation.error && hasRequestedLocation && !geolocation.loading && (
-              <div className="alert alert-warning mb-4 space-y-2">
-                <p className="alert-title">Heads up</p>
-                <p className="alert-description">
-                  ⚠️ {geolocation.error}
-                </p>
-                <div className="space-y-2 text-xs">
-                  {permissionStatus === 'denied' ? (
-                    <>
-                      <p><strong>Location access is currently blocked.</strong></p>
-                      <p className="mt-2 font-semibold">To enable location access:</p>
-                      <ul className="space-y-2">
-                        <li><strong>Chrome/Edge:</strong> Click the lock icon (🔒) → Site settings → Location → Allow</li>
-                        <li><strong>Firefox:</strong> Click the lock icon → More Information → Permissions → Location → Allow</li>
-                        <li><strong>Safari:</strong> Safari → Settings → Websites → Location → Allow</li>
-                      </ul>
-                      <p className="mt-2">After allowing, refresh this page and try again.</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-semibold">To enable location access:</p>
-                      <ul className="space-y-1">
-                        <li>Look for a permission prompt in your browser</li>
-                        <li>Click "Allow" when asked for location access</li>
-                        <li>If no prompt appears, check your browser's address bar for a location icon</li>
-                      </ul>
-                      <p className="mt-2">Or search manually using the search bar above.</p>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            {permissionStatus === 'denied' && !hasRequestedLocation && (
-              <div className="alert alert-info mb-4">
-                <p className="alert-description text-sm">
-                  💡 <strong>Tip:</strong> Location access is currently blocked. Enable it in your browser settings to use the location feature.
-                </p>
-              </div>
-            )}
-            
-            {/* Guidance message only when nothing provided at all */}
-            {!hasSearchParams && !geolocation.loading && !hasRequestedLocation && !locationName && (
-              <p className="mb-4 text-sm text-text-muted">
-                Browse all available shops. Click "Use My Location" to find shops nearby, or use the search bar above.
-              </p>
-            )}
-            
-            {!locationName && (
-              <p className="text-sm font-medium text-text-muted">
-                {shops.length} {shops.length === 1 ? 'shop' : 'shops'} found
-              </p>
-            )}
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                variant="outline"
+                className="justify-center"
+                onClick={handleLocationClick}
+                disabled={geolocation.loading || isGettingLocation}
+                icon={<Navigation className="h-4 w-4" />}
+              >
+                {geolocation.loading || isGettingLocation ? 'Locating…' : 'Use my location'}
+              </Button>
+              {/* List/Map toggle removed */}
+            </div>
           </div>
 
-          {!loading && !advLoading && (cityMeta?.city_slug ? (advancedResults?.shops||[]).length === 0 : shops.length === 0) ? (
-            <div className="text-center py-12">
-              <div className="surface-card mx-auto max-w-md space-y-3 rounded-3xl p-8 text-center shadow-[var(--shadow-sm)]">
-                <MapPin
-                  className="mx-auto mb-4 h-12 w-12 text-[color:var(--color-primary)]"
-                  style={{ opacity: 0.7 }}
-                />
-                <p className="font-medium text-text">
-                  {cityMeta?.city_slug ? `No shops found in radius near ${cityMeta.area}, ${cityMeta.city}` : (locationName ? `No shops found near ${locationName}` : 'No shops found')}
-                </p>
-                <p className="text-sm text-text-muted">
-                  {cityMeta?.city_slug ? `Try increasing radius (currently ${Math.round(filters.radius/1000)}km) or choose another area.` : (locationName 
-                    ? `Try widening your search radius (currently ${Math.round(filters.radius/1000)}km) or check back later for new shops in your area.`
-                    : hasSearchParams 
-                      ? 'Try widening your search radius or changing location.'
-                      : 'Start by selecting a city & area above or browse all shops.')}
-                </p>
-                {(locationName || cityMeta?.city_slug) && (
-                  <p className="text-xs text-text-muted/70">
-                    {cityMeta?.city_slug ? `Selection: ${cityMeta.area}, ${cityMeta.city}` : `Your location: ${locationName}`}
-                  </p>
-                )}
-              </div>
+          {geolocation.loading && (
+            <p className="mt-4 flex items-center gap-2 text-sm text-text-muted">
+              <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--color-primary)] border-t-transparent" />
+              Detecting your location…
+            </p>
+          )}
+
+          {geolocation.error && hasRequestedLocation && !geolocation.loading && (
+            <div className="mt-4 rounded-2xl border border-[color:var(--color-warning)]/40 bg-[color:var(--color-warning)]/10 p-4 text-sm text-text">
+              <p className="font-semibold text-[color:var(--color-warning)]">Location access blocked</p>
+              <p className="mt-1 text-text-muted">
+                {permissionStatus === 'denied'
+                  ? 'Enable location access from your browser settings and refresh this page.'
+                  : geolocation.error}
+              </p>
             </div>
-          ) : (
-            <>
-              {advLoading && (
-                <div className="mb-4 text-sm text-text-muted">Loading shops…</div>
-              )}
-              {cityMeta?.city_slug && (
-                <div className="mb-6">
-                  <ShopMap
-                    center={cityMeta?.areaPoint || cityMeta?.cityCenter}
-                    radiusMeters={filters.radius}
-                    shops={advancedResults?.shops || []}
-                    height={380}
+          )}
+        </div>
+
+        <div className="grid gap-10 lg:grid-cols-[320px_1fr]">
+          <aside className="space-y-6">
+            <div className="glass-card rounded-3xl p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-[0.24em] text-text-muted">Filters</h2>
+              </div>
+              <div className="mt-5 space-y-5">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.22em] text-text-muted">Category</label>
+                  <select
+                    className="input-field"
+                    value={filters.category}
+                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                  >
+                    <option value="">All</option>
+                    <option value="food">Food</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="services">Services</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.22em] text-text-muted">Minimum rating</label>
+                  <select
+                    className="input-field"
+                    value={filters.minRating}
+                    onChange={(e) => setFilters({ ...filters, minRating: e.target.value })}
+                  >
+                    <option value="">Any</option>
+                    <option value="4">4+ stars</option>
+                    <option value="3">3+ stars</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.22em] text-text-muted">Price</label>
+                  <select
+                    className="input-field"
+                    value={filters.priceRange}
+                    onChange={(e) => setFilters({ ...filters, priceRange: e.target.value })}
+                  >
+                    <option value="">Any</option>
+                    <option value="low">Budget</option>
+                    <option value="medium">Moderate</option>
+                    <option value="high">Premium</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.22em] text-text-muted">Max average price (₹)</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="input-field"
+                    value={maxAvgInput}
+                    onChange={(e) => {
+                      const onlyDigits = (e.target.value || '').replace(/\D+/g, '')
+                      setMaxAvgInput(onlyDigits)
+                    }}
+                    onBlur={() => {
+                      if (maxAvgInput !== (filters.maxAveragePrice || '')) {
+                        setFilters({ ...filters, maxAveragePrice: maxAvgInput })
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        e.currentTarget.blur()
+                      }
+                    }}
+                    placeholder="e.g., 500"
                   />
                 </div>
-              )}
-                {cityMeta?.city_slug && advancedResults?.shops?.length > 0 && (
-                  <div className="alert alert-accent mb-4">
-                    <p className="text-sm font-semibold">
-                      📍 Showing {advancedResults.shops.length} shops in {cityMeta.city} near {cityMeta.area}
-                      <span className="ml-2 font-normal">(within {Math.round(filters.radius/1000)}km radius)</span>
-                    </p>
+                {(lat && lon && !cityMeta?.city_slug) || cityMeta?.city_slug ? (
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold uppercase tracking-[0.22em] text-text-muted">Radius (km)</label>
+                    <select
+                      className="input-field"
+                      value={Math.round(filters.radius / 1000)}
+                      onChange={(e) => setFilters({ ...filters, radius: parseInt(e.target.value) * 1000 })}
+                    >
+                      {cityMeta?.city_slug ? (
+                        <>
+                          <option value="1">1 km</option>
+                          <option value="2">2 km</option>
+                          <option value="3">3 km</option>
+                          <option value="5">5 km</option>
+                          <option value="10">10 km</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="2">2 km</option>
+                          <option value="3">3 km</option>
+                          <option value="5">5 km</option>
+                          <option value="10">10 km</option>
+                          <option value="25">25 km</option>
+                          <option value="50">50 km</option>
+                        </>
+                      )}
+                    </select>
                   </div>
-                )}
-                {!cityMeta?.city_slug && locationName && shops.length > 0 && (
-                <div className="alert alert-accent mb-4">
-                  <p className="text-sm font-semibold">
-                    📍 Showing {shops.length} {shops.length === 1 ? 'shop' : 'shops'} near {locationName}
-                    <span className="ml-2 font-normal">(within {Math.round(filters.radius/1000)}km radius)</span>
-                  </p>
+                ) : null}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.22em] text-text-muted">City & area</label>
+                  <CityAreaSelector onChange={setCityMeta} />
+                  {cityMeta?.city && cityMeta?.area && (
+                    <p className="text-xs text-text-muted">Selected: {cityMeta.area}, {cityMeta.city}</p>
+                  )}
                 </div>
-              )}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(cityMeta?.city_slug ? (advancedResults?.shops||[]) : shops).map((shop) => {
-                  const distanceKm = shop.dist?.calculated ? (shop.dist.calculated/1000).toFixed(2) : shop.distance;
-                  return <ShopCard key={shop._id} shop={shop} distanceKm={distanceKm} />
-                })}
               </div>
-            </>
-          )}
-        </main>
+            </div>
+          </aside>
+
+          <main className="space-y-6">
+            {advError && (
+              <div className="rounded-3xl border border-[color:var(--color-danger)]/40 bg-[color:var(--color-danger)]/10 p-4 text-sm text-text">
+                {advError}
+              </div>
+            )}
+            {/* Map preview removed per requirements */}
+
+            {advLoading && (
+              <p className="text-sm text-text-muted">Loading nearby shops…</p>
+            )}
+
+            {!advLoading && activeShops.length === 0 && (
+              <div className="glass-card rounded-[28px] p-10 text-center">
+                <MapPin className="mx-auto h-12 w-12 text-[color:var(--color-primary)]" />
+                <p className="mt-4 text-lg font-semibold text-text">No shops found in this radius.</p>
+                <p className="mt-2 text-sm text-text-muted">
+                  Try widening your radius, adjusting filters, or searching a nearby locality.
+                </p>
+              </div>
+            )}
+
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {activeShops.map((shop) => {
+                const rawDistance = shop.dist?.calculated ? shop.dist.calculated / 1000 : shop.distance
+                const distanceKm = typeof rawDistance === 'number' ? rawDistance : rawDistance ? parseFloat(rawDistance) : undefined
+                return <ShopCard key={shop._id} shop={shop} distanceKm={distanceKm} />
+              })}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   )

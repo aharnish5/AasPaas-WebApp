@@ -14,13 +14,13 @@ const useDebounced = (value, delay = 300) => {
 export default function AddressAutocomplete({
   placeholder = 'Search by location…',
   onSelect,
-  onQueryChange, // optional callback to expose current query upward
-  onSubmitQuery, // optional callback to submit free-form query on Enter
+  onQueryChange,
+  onSubmitQuery,
   minChars = 2,
-  biasLatLon, // { lat, lon }
-  className = '', // applied to container
-  inputClassName = '', // extra classes for input (for hero sizing)
-  dropdownClassName = '', // extra classes for suggestions container
+  biasLatLon,
+  className = '',
+  inputClassName = '',
+  dropdownClassName = '',
 }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -35,7 +35,9 @@ export default function AddressAutocomplete({
     let ignore = false
     async function run() {
       if (!debounced || debounced.trim().length < minChars) {
-        setItems([]); setOpen(false); return
+        setItems([])
+        setOpen(false)
+        return
       }
       setLoading(true)
       try {
@@ -51,16 +53,20 @@ export default function AddressAutocomplete({
           setActiveIndex(0)
         }
       } catch (e) {
-        if (!ignore) { setItems([]); setOpen(false) }
+        if (!ignore) {
+          setItems([])
+          setOpen(false)
+        }
       } finally {
         if (!ignore) setLoading(false)
       }
     }
     run()
-    return () => { ignore = true }
+    return () => {
+      ignore = true
+    }
   }, [debounced, minChars, biasLatLon?.lat, biasLatLon?.lon])
 
-  // Ensure the dropdown always opens scrolled to the top so the first suggestion is fully visible
   useEffect(() => {
     if (open && listRef.current) {
       listRef.current.scrollTop = 0
@@ -94,26 +100,32 @@ export default function AddressAutocomplete({
   }
 
   useEffect(() => {
-    const hasDocument = typeof document !== 'undefined'
     const handler = (e) => {
       if (!listRef.current || !inputRef.current) return
       if (!listRef.current.contains(e.target) && !inputRef.current.contains(e.target)) {
         setOpen(false)
       }
     }
-    if (hasDocument) document.addEventListener('click', handler)
-    return () => { if (hasDocument) document.removeEventListener('click', handler) }
+    document.addEventListener('click', handler)
+    return () => {
+      document.removeEventListener('click', handler)
+    }
   }, [])
 
   return (
-    <div className={`relative w-full pointer-events-auto ${className}`}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+    <div className={`relative z-20 w-full pointer-events-auto ${className}`}>
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[color:var(--color-text-muted)]" />
       <input
         ref={inputRef}
         type="text"
         placeholder={placeholder}
         value={query}
-        onChange={(e) => { const v = e.target.value; setQuery(v); setOpen(true); onQueryChange && onQueryChange(v) }}
+        onChange={(e) => {
+          const v = e.target.value
+          setQuery(v)
+          setOpen(true)
+          onQueryChange && onQueryChange(v)
+        }}
         onFocus={() => setOpen(items.length > 0)}
         onKeyDown={onKeyDown}
         className={`input-field w-full pl-10 ${inputClassName}`}
@@ -123,23 +135,37 @@ export default function AddressAutocomplete({
         aria-autocomplete="list"
       />
       {open && (
-        <div ref={listRef} id="autocomplete-list" role="listbox" className={`absolute z-40 mt-2 w-full surface-card border border-[var(--border-default)] rounded-xl shadow-[var(--shadow-md)] max-h-80 overflow-auto ${dropdownClassName}`}>
+        <div
+          ref={listRef}
+          id="autocomplete-list"
+          role="listbox"
+          className={`absolute z-[1000] mt-2 w-full rounded-2xl border border-[color:var(--color-border)] bg-white/95 shadow-[var(--shadow-lg)] backdrop-blur ${dropdownClassName}`}
+        >
           {loading ? (
-            <div className="p-3 text-sm text-[var(--text-muted)]">Searching…</div>
+            <div className="p-3 text-sm text-[color:var(--color-text-muted)]">Searching…</div>
           ) : items.length === 0 ? (
-            <div className="p-3 text-sm text-[var(--text-muted)]">No matches</div>
+            <div className="p-3 text-sm text-[color:var(--color-text-muted)]">No matches</div>
           ) : (
             <ul>
               {items.map((item, i) => (
-                <li key={`${item.latitude}-${item.longitude}-${i}`} role="option" aria-selected={i===activeIndex}>
+                <li key={`${item.latitude}-${item.longitude}-${i}`} role="option" aria-selected={i === activeIndex}>
                   <button
                     onClick={() => handleSelect(item)}
-                    className={`w-full text-left px-3 py-2 flex items-start gap-2 hover:bg-[var(--surface-hover)] ${i===activeIndex ? 'bg-[var(--surface-hover)]' : ''}`}
+                    className={`flex w-full items-start gap-2 px-3 py-2 text-left transition ${
+                      i === activeIndex
+                        ? 'bg-[color:var(--color-surface-muted)]/60'
+                        : 'hover:bg-[color:var(--color-surface-muted)]/40'
+                    }`}
                   >
-                    <MapPin className="w-4 h-4 text-accent mt-0.5" />
+                    <MapPin className="mt-0.5 h-4 w-4 text-[color:var(--color-primary)]" />
                     <div className="min-w-0">
-                      <div className="text-sm font-medium leading-snug break-words" dangerouslySetInnerHTML={{ __html: item.highlightLabel || item.label }} />
-                      <div className="text-xs text-[var(--text-muted)] whitespace-normal break-words">{item.subtitle || [item.locality, item.city, item.state].filter(Boolean).join(', ')}</div>
+                      <div
+                        className="text-sm font-medium leading-snug text-text"
+                        dangerouslySetInnerHTML={{ __html: item.highlightLabel || item.label }}
+                      />
+                      <div className="text-xs text-[color:var(--color-text-muted)]">
+                        {item.subtitle || [item.locality, item.city, item.state].filter(Boolean).join(', ')}
+                      </div>
                     </div>
                   </button>
                 </li>
