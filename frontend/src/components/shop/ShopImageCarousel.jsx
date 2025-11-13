@@ -66,8 +66,8 @@ export default function ShopImageCarousel({
   const fallbackUrl = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop'
 
   return (
-    <div ref={containerRef} className={`relative w-full select-none ${className}`}>      
-  <div className={`relative overflow-hidden rounded-xl bg-gray-50 border`} style={{ aspectRatio }}>
+    <div ref={containerRef} className={`relative w-full select-none ${className}`}>
+      <div className={`relative overflow-hidden rounded-xl bg-[var(--surface-hover)] border border-[var(--border-default)]`} style={{ aspectRatio }}>
         {/* Slides */}
         <div className="w-full h-full relative">
           {validImages.length === 0 ? (
@@ -104,7 +104,7 @@ export default function ShopImageCarousel({
               type="button"
               aria-label="Previous image"
               onClick={() => { prev(); timerRef.current && clearInterval(timerRef.current) }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-sm p-2 rounded-full backdrop-blur-sm"
+              className="absolute left-2 top-1/2 -translate-y-1/2 surface-card/80 hover:bg-[var(--surface-card)] border border-[var(--border-default)] shadow-[var(--shadow-xs)] p-2 rounded-full backdrop-blur-sm"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -112,7 +112,7 @@ export default function ShopImageCarousel({
               type="button"
               aria-label="Next image"
               onClick={() => { next(); timerRef.current && clearInterval(timerRef.current) }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-sm p-2 rounded-full backdrop-blur-sm"
+              className="absolute right-2 top-1/2 -translate-y-1/2 surface-card/80 hover:bg-[var(--surface-card)] border border-[var(--border-default)] shadow-[var(--shadow-xs)] p-2 rounded-full backdrop-blur-sm"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -126,7 +126,7 @@ export default function ShopImageCarousel({
                 key={i}
                 aria-label={`Go to image ${i + 1}`}
                 onClick={() => handleDotClick(i)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${i === index ? 'bg-[#0F766E] scale-125' : 'bg-white/60 hover:bg-white'}`}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${i === index ? 'bg-primary scale-125' : 'bg-[var(--surface-card)]/70 hover:bg-[var(--surface-card)]'}`}
               />
             ))}
           </div>
@@ -139,7 +139,7 @@ export default function ShopImageCarousel({
             <button
               key={i}
               onClick={() => handleDotClick(i)}
-              className={`relative w-20 h-16 rounded-md overflow-hidden border ${i === index ? 'border-[#0F766E] ring-2 ring-[#0F766E]/40' : 'border-gray-200'}`}
+              className={`relative w-20 h-16 rounded-md overflow-hidden border ${i === index ? 'border-primary ring-2 ring-primary/30' : 'border-[var(--border-default)]'}`}
             >
               <img
                 src={errored[i] ? fallbackUrl : img.url}

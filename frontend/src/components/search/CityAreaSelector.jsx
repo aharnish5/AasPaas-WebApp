@@ -108,8 +108,8 @@ export default function CityAreaSelector({ onChange, className = '' }) {
     setSelectedArea(null);
     setAreaQuery('');
     onChange && onChange({ city: city.name, city_slug: city.slug, cityCenter: { lat: city.lat, lon: city.lon } });
-    // Prefetch top areas immediately (without user typing) using a generic locality query like ' ' (space) to trigger provider
-    ;(async () => {
+  // Prefetch top areas immediately (without user typing) using a generic locality query like ' ' (space) to trigger provider
+  void (async () => {
       try {
         setLoadingArea(true);
         const res = await shopAPI.suggestPlaces(city.name, 15, undefined, city.lat, city.lon);
@@ -132,7 +132,7 @@ export default function CityAreaSelector({ onChange, className = '' }) {
       } finally {
         setLoadingArea(false);
       }
-    })();
+  })();
   };
 
   const handleAreaSelect = (s) => {
