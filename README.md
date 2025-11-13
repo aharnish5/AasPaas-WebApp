@@ -9,25 +9,14 @@ A modern platform that connects **nearby customers** with **local micro-vendors*
 AasPaas makes local businesses **discoverable, reviewable, and reachable** with a seamless, map-based experience.
 
 🌐 **Live Demo:**
-👉 [https://aaspaas-ij41.onrender.com/vendor/my-shop](https://aaspaas-ij41.onrender.com/vendor/my-shop)
+👉 [https://aaspaas-ij41.onrender.com](https://aaspaas-ij41.onrender.com)
 
 ---
 
-## 🎬 **Demo & Screenshots**
-
-### 📽️ Demo Video
-
-| Demo                      | Link                               |
-| ------------------------- | ---------------------------------- |
-| 🎥 Feature Walkthrough    | *Add your YouTube/Drive link here* |
-| 🧭 Vendor Onboarding Demo | *Coming soon*                      |
-| 🌙 Dark Mode UI Showcase  | *Coming soon*                      |
-
----
+## 🎬 **Screenshots**
 
 ### 🖼️ Screenshots
 
-> Add screenshots inside `docs/screenshots/` directory.
 
 | Page                        | Preview                                                      |
 | --------------------------- | ------------------------------------------------------------ |
