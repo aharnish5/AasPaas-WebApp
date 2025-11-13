@@ -446,11 +446,23 @@ const VendorShop = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-2xl shadow-sm p-8">
-          <h1 className="text-3xl font-bold mb-2">{isEditMode ? 'Edit Shop' : 'Create Your Shop'}</h1>
-          <p className="text-gray-600 mb-8">{isEditMode ? 'Update your shop information' : 'Add your shop to help customers find you'}</p>
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      {/* Hero */}
+      <div className="mb-6">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-primary/20 to-accent/20 text-primary">
+            <Sparkles className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{isEditMode ? 'Edit Shop' : 'Create Your Shop'}</h1>
+            <p className="text-[var(--text-muted)]">
+              {isEditMode ? 'Update your shop information' : 'Add your shop to help customers find you'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="surface-card text-[var(--text-primary)] border border-[var(--border-default)] rounded-2xl p-6 md:p-8">
 
           {success && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
@@ -475,10 +487,10 @@ const VendorShop = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* AI Autofill */}
-            <div className="p-4 border rounded-xl bg-gray-50">
+            <div className="p-4 border border-[var(--border-default)] rounded-xl bg-[var(--surface-hover)]">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#0F766E]" />
+                  <Sparkles className="w-5 h-5 text-primary" />
                   <h2 className="font-semibold">Autofill from Photo</h2>
                 </div>
                 <div className="flex items-center gap-3">
@@ -491,7 +503,7 @@ const VendorShop = () => {
                       className="hidden"
                       aria-label="Upload or capture a photo for AI autofill"
                     />
-                    <span className="text-sm text-[#0F766E] hover:underline flex items-center gap-1">
+                    <span className="text-sm text-primary hover:underline flex items-center gap-1">
                       <Upload className="w-4 h-4" /> Upload / Capture
                     </span>
                   </label>
@@ -512,7 +524,7 @@ const VendorShop = () => {
                         document.body.removeChild(input)
                       }, 2000)
                     }}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium border border-[#0F766E] text-[#0F766E] bg-white hover:bg-[#0F766E] hover:text-white transition focus:outline-none focus:ring focus:ring-[#0F766E]/30"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium border border-primary text-primary bg-white hover:bg-primary hover:text-white transition focus:outline-none focus:ring focus:ring-primary/30"
                     aria-label="Open camera to capture a photo for AI autofill"
                   >
                     <Camera className="w-4 h-4" /> Camera
@@ -636,7 +648,7 @@ const VendorShop = () => {
             </div>
 
             {/* Location Section */}
-            <div className="border-t pt-6">
+            <div className="border-t border-[var(--border-default)] pt-6">
               <h2 className="text-xl font-semibold mb-4">Location</h2>
 
               {/* Location Method Selection */}
@@ -823,10 +835,10 @@ const VendorShop = () => {
             />
 
             {/* Per-day Working Hours with AM/PM and Closed option */}
-            <div className="border-t pt-6">
+            <div className="border-t border-[var(--border-default)] pt-6">
               <h2 className="text-xl font-semibold mb-4">Hours (Per Day)</h2>
               {/* Bulk Apply */}
-              <div className="p-4 mb-4 rounded-lg border bg-gray-50">
+              <div className="p-4 mb-4 rounded-lg border border-[var(--border-default)] bg-[var(--surface-hover)]">
                 <h3 className="font-medium mb-2 text-sm">Apply Same Hours to Multiple Days</h3>
                 <div className="grid md:grid-cols-6 gap-2 items-end mb-3">
                   <div className="md:col-span-2">
@@ -1014,7 +1026,7 @@ const VendorShop = () => {
             </div>
 
             {/* Shop Images */}
-            <div className="border-t pt-6">
+            <div className="border-t border-[var(--border-default)] pt-6">
               <h2 className="text-xl font-semibold mb-4">Shop Images</h2>
               <p className="text-sm text-gray-600 mb-4">Upload up to 5 images of your shop</p>
               
@@ -1053,7 +1065,7 @@ const VendorShop = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                   {uploadedImages.map((img, index) => (
                     <div key={index} className="relative group">
-                      <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-100">
+                      <div className="aspect-square rounded-lg overflow-hidden border-2 border-[var(--border-default)] bg-[var(--surface-hover)]">
                         {img.uploading ? (
                           <div className="w-full h-full flex items-center justify-center">
                             <Loader2 className="w-8 h-8 animate-spin text-accent" />
@@ -1087,7 +1099,7 @@ const VendorShop = () => {
               )}
 
               {uploadedImages.length === 0 && (
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
+                <div className="border-2 border-dashed border-[var(--border-default)] rounded-xl p-8 text-center">
                   <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                   <p className="text-sm text-gray-600">No images uploaded yet</p>
                   <p className="text-xs text-gray-500 mt-1">Click "Upload Images" to add shop photos</p>
@@ -1096,7 +1108,7 @@ const VendorShop = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="flex gap-4 pt-6 border-t">
+            <div className="flex gap-4 pt-6 border-t border-[var(--border-default)]">
               <Button
                 type="submit"
                 loading={loading}
@@ -1120,7 +1132,6 @@ const VendorShop = () => {
               </div>
             )}
           </form>
-        </div>
       </div>
     </div>
   )

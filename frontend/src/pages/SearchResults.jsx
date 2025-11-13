@@ -200,12 +200,21 @@ const SearchResults = () => {
   if (loading) {
     return (
       <div className="container-custom py-12">
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid gap-6 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-gray-200 rounded-xl h-48 mb-4"></div>
-              <div className="bg-gray-200 rounded h-4 w-3/4 mb-2"></div>
-              <div className="bg-gray-200 rounded h-4 w-1/2"></div>
+            <div key={i} className="surface-card animate-pulse p-5">
+              <div
+                className="mb-4 h-48 rounded-2xl"
+                style={{ background: 'color-mix(in srgb, var(--color-surface-muted) 80%, transparent)' }}
+              />
+              <div
+                className="mb-2 h-4 w-3/4 rounded-full"
+                style={{ background: 'color-mix(in srgb, var(--color-surface-muted) 75%, transparent)' }}
+              />
+              <div
+                className="h-4 w-1/2 rounded-full"
+                style={{ background: 'color-mix(in srgb, var(--color-surface-muted) 70%, transparent)' }}
+              />
             </div>
           ))}
         </div>
@@ -218,15 +227,16 @@ const SearchResults = () => {
     return (
       <div className="container-custom py-12">
         <div className="text-center">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
-            <p className="text-red-600 font-medium mb-2">Error</p>
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="alert alert-danger mx-auto max-w-md space-y-2 text-left">
+            <p className="alert-title">Error</p>
+            <p className="alert-description">{error}</p>
             <button
               onClick={() => {
                 dispatch(clearError())
                 window.location.href = '/search'
               }}
-              className="mt-4 text-sm text-red-600 hover:underline"
+              type="button"
+              className="text-sm font-semibold text-[color:var(--color-danger)] underline-offset-4 hover:underline"
             >
               Try again
             </button>
@@ -238,7 +248,7 @@ const SearchResults = () => {
 
   return (
     <div className="container-custom py-6">
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col gap-6 lg:flex-row">
         {/* Filters Sidebar */}
         <aside className="lg:w-64">
           <div className="card">
@@ -358,17 +368,17 @@ const SearchResults = () => {
         {/* Results */}
         <main className="flex-1">
           <div className="mb-6">
-            <div className="flex items-start justify-between gap-4 mb-3">
+            <div className="mb-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-2">
+                <h1 className="mb-2 text-3xl font-semibold tracking-[-0.02em] text-text">
                   {cityMeta?.city && cityMeta?.area ? (
                     <span className="flex items-center gap-2">
-                      <MapPin className="w-6 h-6 text-accent-500" />
+                      <MapPin className="h-6 w-6 text-[color:var(--color-accent)]" />
                       Shops near {cityMeta.area}
                     </span>
                   ) : locationName ? (
                     <span className="flex items-center gap-2">
-                      <MapPin className="w-6 h-6 text-accent-500" />
+                      <MapPin className="h-6 w-6 text-[color:var(--color-accent)]" />
                       Shops near {locationName}
                     </span>
                   ) : hasSearchParams ? (
@@ -378,13 +388,13 @@ const SearchResults = () => {
                   )}
                 </h1>
                 {(cityMeta?.city && cityMeta?.area) ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-text-muted">
+                    <span className="flex items-center gap-1 text-text">
+                      <MapPin className="h-4 w-4 text-[color:var(--color-primary)]" />
                       <span className="font-medium">{cityMeta.area}, {cityMeta.city}</span>
                     </span>
-                    <span className="text-gray-400">•</span>
-                    <span className="text-gray-500">
+                    <span className="text-text-muted/70">•</span>
+                    <span>
                       {(advancedResults?.shops?.length || 0) > 0
                         ? (() => {
                             const r = Number(filters.radius);
@@ -395,13 +405,13 @@ const SearchResults = () => {
                     </span>
                   </div>
                 ) : (locationName && lat && lon) && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-text-muted">
+                    <span className="flex items-center gap-1 text-text">
+                      <MapPin className="h-4 w-4 text-[color:var(--color-primary)]" />
                       <span className="font-medium">{locationName}</span>
                     </span>
-                    <span className="text-gray-400">•</span>
-                    <span className="text-gray-500">
+                    <span className="text-text-muted/70">•</span>
+                    <span>
                       {shops.length > 0 
                         ? (() => {
                             const r = Number(filters.radius);
@@ -430,18 +440,18 @@ const SearchResults = () => {
                     getLocation()
                   }}
                   disabled={geolocation.loading || isGettingLocation}
-                  className="flex items-center gap-2 px-4 py-2 text-sm bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="btn-gradient inline-flex items-center gap-2 whitespace-nowrap text-xs font-semibold uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-60"
                   title="Click to allow location access and find nearby shops"
                   type="button"
                 >
                   {geolocation.loading || isGettingLocation ? (
                     <>
-                      <span className="animate-spin">⏳</span>
-                      Getting location...
+                      <span className="inline-block animate-spin">⏳</span>
+                      Locating…
                     </>
                   ) : (
                     <>
-                      <Navigation className="w-4 h-4" />
+                      <Navigation className="h-4 w-4" />
                       Use My Location
                     </>
                   )}
@@ -450,23 +460,24 @@ const SearchResults = () => {
             </div>
             
             {geolocation.loading && (
-              <p className="text-gray-600 mb-2 flex items-center gap-2">
-                <span className="animate-spin">⏳</span>
+              <p className="mb-2 flex items-center gap-2 text-sm text-text-muted">
+                <span className="inline-block animate-spin">⏳</span>
                 Detecting your location...
               </p>
             )}
             
             {geolocation.error && hasRequestedLocation && !geolocation.loading && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <p className="text-sm font-medium text-yellow-800 mb-2">
+              <div className="alert alert-warning mb-4 space-y-2">
+                <p className="alert-title">Heads up</p>
+                <p className="alert-description">
                   ⚠️ {geolocation.error}
                 </p>
-                <div className="text-xs text-yellow-700 space-y-1">
+                <div className="space-y-2 text-xs">
                   {permissionStatus === 'denied' ? (
                     <>
                       <p><strong>Location access is currently blocked.</strong></p>
-                      <p className="mt-2"><strong>To enable location access:</strong></p>
-                      <ul className="list-disc list-inside ml-2 space-y-2 mt-1">
+                      <p className="mt-2 font-semibold">To enable location access:</p>
+                      <ul className="space-y-2">
                         <li><strong>Chrome/Edge:</strong> Click the lock icon (🔒) → Site settings → Location → Allow</li>
                         <li><strong>Firefox:</strong> Click the lock icon → More Information → Permissions → Location → Allow</li>
                         <li><strong>Safari:</strong> Safari → Settings → Websites → Location → Allow</li>
@@ -475,8 +486,8 @@ const SearchResults = () => {
                     </>
                   ) : (
                     <>
-                      <p><strong>To enable location access:</strong></p>
-                      <ul className="list-disc list-inside ml-2 space-y-1">
+                      <p className="font-semibold">To enable location access:</p>
+                      <ul className="space-y-1">
                         <li>Look for a permission prompt in your browser</li>
                         <li>Click "Allow" when asked for location access</li>
                         <li>If no prompt appears, check your browser's address bar for a location icon</li>
@@ -489,8 +500,8 @@ const SearchResults = () => {
             )}
             
             {permissionStatus === 'denied' && !hasRequestedLocation && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-blue-800">
+              <div className="alert alert-info mb-4">
+                <p className="alert-description text-sm">
                   💡 <strong>Tip:</strong> Location access is currently blocked. Enable it in your browser settings to use the location feature.
                 </p>
               </div>
@@ -498,24 +509,29 @@ const SearchResults = () => {
             
             {/* Guidance message only when nothing provided at all */}
             {!hasSearchParams && !geolocation.loading && !hasRequestedLocation && !locationName && (
-              <p className="text-gray-600 mb-4">
+              <p className="mb-4 text-sm text-text-muted">
                 Browse all available shops. Click "Use My Location" to find shops nearby, or use the search bar above.
               </p>
             )}
             
             {!locationName && (
-              <p className="text-gray-600">{shops.length} {shops.length === 1 ? 'shop' : 'shops'} found</p>
+              <p className="text-sm font-medium text-text-muted">
+                {shops.length} {shops.length === 1 ? 'shop' : 'shops'} found
+              </p>
             )}
           </div>
 
           {!loading && !advLoading && (cityMeta?.city_slug ? (advancedResults?.shops||[]).length === 0 : shops.length === 0) ? (
             <div className="text-center py-12">
-              <div className="bg-gray-50 rounded-xl p-8 max-w-md mx-auto">
-                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-2 font-medium">
+              <div className="surface-card mx-auto max-w-md space-y-3 rounded-3xl p-8 text-center shadow-[var(--shadow-sm)]">
+                <MapPin
+                  className="mx-auto mb-4 h-12 w-12 text-[color:var(--color-primary)]"
+                  style={{ opacity: 0.7 }}
+                />
+                <p className="font-medium text-text">
                   {cityMeta?.city_slug ? `No shops found in radius near ${cityMeta.area}, ${cityMeta.city}` : (locationName ? `No shops found near ${locationName}` : 'No shops found')}
                 </p>
-                <p className="text-gray-500 text-sm mb-4">
+                <p className="text-sm text-text-muted">
                   {cityMeta?.city_slug ? `Try increasing radius (currently ${Math.round(filters.radius/1000)}km) or choose another area.` : (locationName 
                     ? `Try widening your search radius (currently ${Math.round(filters.radius/1000)}km) or check back later for new shops in your area.`
                     : hasSearchParams 
@@ -523,7 +539,7 @@ const SearchResults = () => {
                       : 'Start by selecting a city & area above or browse all shops.')}
                 </p>
                 {(locationName || cityMeta?.city_slug) && (
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-text-muted/70">
                     {cityMeta?.city_slug ? `Selection: ${cityMeta.area}, ${cityMeta.city}` : `Your location: ${locationName}`}
                   </p>
                 )}
@@ -532,7 +548,7 @@ const SearchResults = () => {
           ) : (
             <>
               {advLoading && (
-                <div className="mb-4 text-sm text-gray-500">Loading shops…</div>
+                <div className="mb-4 text-sm text-text-muted">Loading shops…</div>
               )}
               {cityMeta?.city_slug && (
                 <div className="mb-6">
@@ -545,18 +561,18 @@ const SearchResults = () => {
                 </div>
               )}
                 {cityMeta?.city_slug && advancedResults?.shops?.length > 0 && (
-                  <div className="mb-4 p-3 bg-accent-50 border border-accent-200 rounded-lg">
-                    <p className="text-sm text-accent-800">
-                      <strong>📍 Showing {advancedResults.shops.length} shops in {cityMeta.city} near {cityMeta.area}</strong>
-                      <span className="text-accent-600 ml-2">(within {Math.round(filters.radius/1000)}km radius)</span>
+                  <div className="alert alert-accent mb-4">
+                    <p className="text-sm font-semibold">
+                      📍 Showing {advancedResults.shops.length} shops in {cityMeta.city} near {cityMeta.area}
+                      <span className="ml-2 font-normal">(within {Math.round(filters.radius/1000)}km radius)</span>
                     </p>
                   </div>
                 )}
                 {!cityMeta?.city_slug && locationName && shops.length > 0 && (
-                <div className="mb-4 p-3 bg-accent-50 border border-accent-200 rounded-lg">
-                  <p className="text-sm text-accent-800">
-                    <strong>📍 Showing {shops.length} {shops.length === 1 ? 'shop' : 'shops'} near {locationName}</strong>
-                      <span className="text-accent-600 ml-2">(within {Math.round(filters.radius/1000)}km radius)</span>
+                <div className="alert alert-accent mb-4">
+                  <p className="text-sm font-semibold">
+                    📍 Showing {shops.length} {shops.length === 1 ? 'shop' : 'shops'} near {locationName}
+                    <span className="ml-2 font-normal">(within {Math.round(filters.radius/1000)}km radius)</span>
                   </p>
                 </div>
               )}

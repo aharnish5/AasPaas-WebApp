@@ -111,9 +111,9 @@ const ShopDetail = () => {
   if (loading) {
     return (
       <div className="container-custom py-12">
-        <div className="animate-pulse">
-          <div className="bg-gray-200 rounded-xl h-96 mb-6"></div>
-          <div className="bg-gray-200 rounded h-8 w-1/2 mb-4"></div>
+        <div className="space-y-6">
+          <div className="surface-card animate-pulse h-96 rounded-3xl" />
+          <div className="surface-card animate-pulse h-28 rounded-3xl" />
         </div>
       </div>
     )
@@ -122,7 +122,12 @@ const ShopDetail = () => {
   if (!selectedShop) {
     return (
       <div className="container-custom py-12">
-        <p className="text-center text-gray-600">Shop not found</p>
+        <div className="mx-auto max-w-xl text-center">
+          <div className="alert alert-info inline-block text-left">
+            <p className="alert-title">Heads up</p>
+            <p className="alert-description">We couldn’t find that shop. Try returning to search results and selecting another listing.</p>
+          </div>
+        </div>
       </div>
     )
   }
@@ -136,26 +141,41 @@ const ShopDetail = () => {
   return (
     <div className="container-custom py-6">
       {/* Hero Section */}
-      <div className="mb-8">
-        <ShopImageCarousel images={selectedShop.images || []} aspectRatio="16/9" className="mb-6" />
+      <div className="mb-8 space-y-6">
+        <ShopImageCarousel
+          images={selectedShop.images || []}
+          aspectRatio="16/9"
+          className="overflow-hidden rounded-3xl shadow-[var(--shadow-sm)]"
+        />
 
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{selectedShop.name}</h1>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+        <div className="surface-card flex flex-col gap-5 rounded-3xl p-6 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-4">
+            <div>
+              <p className="badge-pill bg-primary/10 text-primary">featured vendor</p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-[-0.02em] text-text md:text-4xl">
+                {selectedShop.name}
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-primary">
+                <Star className="h-4 w-4 fill-current" />
                 <span className="font-semibold">{rating.toFixed(1)}</span>
-                <span className="text-gray-600">({reviewCount} reviews)</span>
-              </div>
+                <span className="text-[0.65rem] uppercase tracking-[0.16em] text-primary/70">
+                  ({reviewCount} reviews)
+                </span>
+              </span>
               {selectedShop.priceRange && (
-                <span className="text-gray-700 px-2 py-1 rounded bg-gray-100 text-sm">
-                  {selectedShop.priceRange === 'low' ? '₹ Budget' : selectedShop.priceRange === 'medium' ? '₹₹ Moderate' : '₹₹₹ Premium'}
+                <span className="status-pill bg-secondary/15 text-secondary">
+                  {selectedShop.priceRange === 'low'
+                    ? '₹ Budget'
+                    : selectedShop.priceRange === 'medium'
+                    ? '₹₹ Moderate'
+                    : '₹₹₹ Premium'}
                 </span>
               )}
               {selectedShop.distance !== undefined && (
-                <span className="text-gray-600 flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
+                <span className="status-pill bg-accent/15 text-accent">
+                  <MapPin className="h-3.5 w-3.5" />
                   {selectedShop.distance.toFixed(1)} km away
                 </span>
               )}
@@ -164,40 +184,44 @@ const ShopDetail = () => {
           <button
             onClick={toggleFavorite}
             disabled={loadingFavorite}
-            className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"
+            className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/85 text-danger shadow-[var(--shadow-xs)] transition-colors hover:bg-[color:var(--color-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+            aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <Heart className={`w-6 h-6 ${favorited ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+            <Heart className={`h-6 w-6 transition-colors ${favorited ? 'fill-danger text-danger' : 'text-danger/60'}`} />
           </button>
         </div>
       </div>
 
       {/* Info Section */}
-      <div className="grid md:grid-cols-2 gap-8 mb-8">
+      <div className="mb-8 grid gap-6 md:grid-cols-2">
         <div className="card">
-          <h2 className="text-xl font-semibold mb-4">Details</h2>
-          <div className="space-y-3">
+          <h2 className="text-xl font-semibold text-text">Details</h2>
+          <div className="mt-4 space-y-4">
             {selectedShop.address && (
               <div className="flex items-start gap-2">
-                <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                <MapPin className="mt-0.5 h-5 w-5 text-[color:var(--color-primary)]/80" />
                 <div>
-                  <p className="font-medium">Address</p>
-                  <p className="text-gray-600">{selectedShop.address.raw}</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted/80">Address</p>
+                  <p className="mt-1 text-sm text-text-muted">{selectedShop.address.raw}</p>
                 </div>
               </div>
             )}
             {selectedShop.phone && (
               <div className="flex items-center gap-2">
-                <Phone className="w-5 h-5 text-gray-400" />
-                <a href={`tel:${selectedShop.phone}`} className="text-[#0F766E] hover:underline">
+                <Phone className="h-5 w-5 text-[color:var(--color-primary)]/80" />
+                <a
+                  href={`tel:${selectedShop.phone}`}
+                  className="text-sm font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline"
+                >
                   {selectedShop.phone}
                 </a>
               </div>
             )}
             <div className="flex items-start gap-2">
-              <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
+              <Clock className="mt-0.5 h-5 w-5 text-[color:var(--color-primary)]/80" />
               <div>
-                <p className="font-medium">Hours</p>
-                <div className="text-gray-600">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted/80">Hours</p>
+                <div className="mt-1 space-y-1 text-sm text-text-muted">
                   {(() => {
                     const labels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
                     const map = new Map()
@@ -216,10 +240,10 @@ const ShopDetail = () => {
             </div>
             {selectedShop.averagePrice !== undefined && (
               <div className="flex items-start gap-2">
-                <IndianRupee className="w-5 h-5 text-gray-400 mt-0.5" />
+                <IndianRupee className="mt-0.5 h-5 w-5 text-[color:var(--color-primary)]/80" />
                 <div>
-                  <p className="font-medium">Average Price</p>
-                  <p className="text-gray-600">₹ {selectedShop.averagePrice}</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted/80">Average Price</p>
+                  <p className="mt-1 text-sm text-text-muted">₹ {selectedShop.averagePrice}</p>
                 </div>
               </div>
             )}
@@ -227,16 +251,18 @@ const ShopDetail = () => {
         </div>
 
         <div className="card">
-          <h2 className="text-xl font-semibold mb-4">Description</h2>
-          <p className="text-gray-600">{selectedShop.description || 'No description available.'}</p>
+          <h2 className="text-xl font-semibold text-text">Description</h2>
+          <p className="mt-4 text-sm leading-relaxed text-text-muted">
+            {selectedShop.description || 'No description available.'}
+          </p>
         </div>
       </div>
 
       {/* Location & Directions */}
       <div className="card mb-8">
-        <h2 className="text-xl font-semibold mb-4">Location & Directions</h2>
+        <h2 className="text-xl font-semibold text-text">Location & Directions</h2>
         {hasCoords ? (
-          <div className="space-y-4">
+          <div className="mt-4 space-y-4">
             <VendorMapEmbed
               lat={lat}
               lng={lng}
@@ -244,84 +270,111 @@ const ShopDetail = () => {
               height="320px"
               zoom={16}
             />
-            <div className="text-sm text-gray-600 flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 text-sm text-text-muted">
               {selectedShop.address?.raw && (
                 <div>
-                  <p className="font-medium">Address</p>
-                  <p>{selectedShop.address.raw}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted/70">Address</p>
+                  <p className="mt-1">{selectedShop.address.raw}</p>
                 </div>
               )}
               {selectedShop.distance !== undefined && (
                 <div>
-                  <p className="font-medium">Approx. Distance</p>
-                  <p>{selectedShop.distance.toFixed(2)} km</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted/70">Approx. Distance</p>
+                  <p className="mt-1">{selectedShop.distance.toFixed(2)} km</p>
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <p className="text-gray-600 text-sm">Location coordinates not available for this shop.</p>
+          <p className="mt-4 text-sm text-text-muted">Location coordinates not available for this shop.</p>
         )}
       </div>
 
   {/* Reviews Section */}
       <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Reviews</h2>
-          <div className="flex gap-2">
-            {['all','photos'].map(f => (
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-xl font-semibold text-text">Reviews</h2>
+          <div className="flex flex-wrap gap-2">
+            {['all','photos'].map((filterKey) => (
               <button
-                key={f}
-                onClick={() => applyFilter(f)}
-                className={`text-sm px-3 py-1 rounded border ${reviewsFilter===f ? 'bg-[#0F766E] text-white border-[#0F766E]' : 'bg-white text-gray-700'}`}
-              >{f === 'all' ? 'All' : 'With Photos'}</button>
+                key={filterKey}
+                onClick={() => applyFilter(filterKey)}
+                className={`surface-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition-colors ${reviewsFilter===filterKey ? 'bg-primary/20 text-primary' : 'bg-[color:var(--color-surface)] text-text-muted hover:text-primary'}`}
+                type="button"
+              >
+                {filterKey === 'all' ? 'All' : 'With Photos'}
+              </button>
             ))}
           </div>
         </div>
         {role === 'customer' && (
           <div className="mb-4">
             {!showReviewForm ? (
-              <button onClick={() => setShowReviewForm(true)} className="px-4 py-2 rounded bg-[#0F766E] text-white">Write a review</button>
+              <button
+                onClick={() => setShowReviewForm(true)}
+                className="btn-gradient text-xs font-semibold uppercase tracking-[0.18em]"
+                type="button"
+              >
+                Write a review
+              </button>
             ) : (
               <form onSubmit={submitReview} className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Rating</label>
-                  <select value={formRating} onChange={(e)=>setFormRating(parseInt(e.target.value))} className="border rounded px-2 py-1">
+                  <label className="input-label">Rating</label>
+                  <select value={formRating} onChange={(e)=>setFormRating(parseInt(e.target.value))} className="input-field">
                     {[5,4,3,2,1].map(r => <option key={r} value={r}>{r} stars</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Your review</label>
-                  <textarea value={formText} onChange={(e)=>setFormText(e.target.value)} minLength={10} required className="w-full border rounded p-2" rows={3} placeholder="Share your experience (min 10 chars)" />
+                  <label className="input-label">Your review</label>
+                  <textarea
+                    value={formText}
+                    onChange={(e)=>setFormText(e.target.value)}
+                    minLength={10}
+                    required
+                    className="input-field"
+                    rows={3}
+                    placeholder="Share your experience (min 10 chars)"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Photos (up to 5)</label>
-                  <input type="file" accept="image/*" multiple onChange={onSelectImages} />
+                  <label className="input-label">Photos (up to 5)</label>
+                  <input type="file" accept="image/*" multiple onChange={onSelectImages} className="text-sm text-text" />
                 </div>
                 <div className="flex gap-2">
-                  <button disabled={submitting} className="px-4 py-2 rounded bg-[#0F766E] text-white disabled:opacity-50">Submit</button>
-                  <button type="button" onClick={()=>setShowReviewForm(false)} className="px-4 py-2 rounded bg-gray-100">Cancel</button>
+                  <button disabled={submitting} className="btn-gradient text-xs font-semibold uppercase tracking-[0.18em] disabled:opacity-50" type="submit">
+                    Submit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={()=>setShowReviewForm(false)}
+                    className="surface-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-text"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </form>
             )}
           </div>
         )}
         {!reviewsState ? (
-          <p className="text-gray-600">Loading reviews...</p>
+          <p className="text-sm text-text-muted">Loading reviews...</p>
         ) : reviewsState.reviews.length === 0 ? (
-          <p className="text-gray-600">No reviews yet. Be the first!</p>
+          <p className="text-sm text-text-muted">No reviews yet. Be the first!</p>
         ) : (
           <div className="space-y-4">
             {reviewsState.reviews.map(r => (
-              <div key={r._id} className="border rounded-lg p-4">
+              <div key={r._id} className="surface-card rounded-3xl p-4 shadow-[var(--shadow-xs)]">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{r.rating}</span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Star className="h-4 w-4 text-[color:var(--color-primary)]" />
+                    <span className="font-semibold text-text">{r.rating}</span>
                   </div>
-                  <span className="text-xs text-gray-500">{new Date(r.createdAt).toLocaleDateString()}</span>
+                  <span className="text-xs uppercase tracking-[0.18em] text-text-muted/70">
+                    {new Date(r.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
-                {r.text && <p className="text-sm text-gray-700 mb-2 whitespace-pre-line">{r.text}</p>}
+                {r.text && <p className="mb-2 text-sm leading-relaxed text-text-muted whitespace-pre-line">{r.text}</p>}
                 {r.images && r.images.length > 0 && (
                   <div className="flex gap-2 flex-wrap mb-2">
                     {r.images.map(img => (
@@ -329,7 +382,7 @@ const ShopDetail = () => {
                         key={img.url}
                         src={img.url}
                         alt="review"
-                        className="w-20 h-20 object-cover rounded cursor-pointer"
+                        className="h-20 w-20 cursor-pointer rounded-2xl object-cover shadow-[var(--shadow-xs)]"
                         loading="lazy"
                         onClick={() => { setGalleryImage(img.url); setGalleryOpen(true); }}
                       />
@@ -339,7 +392,7 @@ const ShopDetail = () => {
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => reviewAPI.markHelpful(shopId, r._id).catch(()=>{})}
-                    className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-800"
+                    className="flex items-center gap-1 text-xs text-text-muted transition-colors hover:text-primary"
                   >
                     <ThumbsUp className="w-4 h-4" /> Helpful ({r.helpfulCount})
                   </button>
@@ -347,13 +400,13 @@ const ShopDetail = () => {
                     <>
                       <button
                         onClick={() => { setEditingId(r._id); setEditText(r.text || ''); setEditRating(r.rating); }}
-                        className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-800"
+                        className="flex items-center gap-1 text-xs text-text-muted transition-colors hover:text-primary"
                       >
                         <Pencil className="w-4 h-4" /> Edit
                       </button>
                       <button
                         onClick={async () => { await reviewAPI.deleteReview(shopId, r._id); dispatch(fetchShopById({ shopId })); dispatch(fetchShopReviews({ shopId, params: { page:1, limit:3, sort:'newest', filter: reviewsFilter } })); }}
-                        className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700"
+                        className="flex items-center gap-1 text-xs text-danger transition-colors hover:text-danger/80"
                       >
                         <Trash className="w-4 h-4" /> Delete
                       </button>
@@ -371,22 +424,36 @@ const ShopDetail = () => {
                     className="mt-3 space-y-2"
                   >
                     <div className="flex items-center gap-2">
-                      <label className="text-sm">Rating</label>
-                      <select value={editRating} onChange={(e)=>setEditRating(parseInt(e.target.value))} className="border rounded px-2 py-1 text-sm">
+                      <label className="text-sm font-semibold text-text-muted">Rating</label>
+                      <select value={editRating} onChange={(e)=>setEditRating(parseInt(e.target.value))} className="input-field">
                         {[5,4,3,2,1].map(r => <option key={r} value={r}>{r} stars</option>)}
                       </select>
                     </div>
-                    <textarea value={editText} onChange={(e)=>setEditText(e.target.value)} className="w-full border rounded p-2 text-sm" rows={3} />
+                    <textarea value={editText} onChange={(e)=>setEditText(e.target.value)} className="input-field" rows={3} />
                     <div className="flex gap-2">
-                      <button className="px-3 py-1.5 rounded bg-[#0F766E] text-white text-sm">Save</button>
-                      <button type="button" onClick={()=>setEditingId(null)} className="px-3 py-1.5 rounded bg-gray-100 text-sm">Cancel</button>
+                      <button className="btn-gradient text-xs font-semibold uppercase tracking-[0.18em]" type="submit">
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={()=>setEditingId(null)}
+                        className="surface-pill px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-text"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </form>
                 )}
               </div>
             ))}
             {reviewsState.pagination && reviewsState.reviews.length < reviewsState.pagination.total && (
-              <button onClick={loadMoreReviews} className="text-sm px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">Load more</button>
+              <button
+                onClick={loadMoreReviews}
+                className="surface-pill mt-2 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-text hover:text-primary"
+                type="button"
+              >
+                Load more
+              </button>
             )}
           </div>
         )}

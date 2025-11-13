@@ -94,19 +94,20 @@ export default function AddressAutocomplete({
   }
 
   useEffect(() => {
+    const hasDocument = typeof document !== 'undefined'
     const handler = (e) => {
       if (!listRef.current || !inputRef.current) return
       if (!listRef.current.contains(e.target) && !inputRef.current.contains(e.target)) {
         setOpen(false)
       }
     }
-    document.addEventListener('click', handler)
-    return () => document.removeEventListener('click', handler)
+    if (hasDocument) document.addEventListener('click', handler)
+    return () => { if (hasDocument) document.removeEventListener('click', handler) }
   }, [])
 
   return (
     <div className={`relative w-full pointer-events-auto ${className}`}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
       <input
         ref={inputRef}
         type="text"
@@ -115,30 +116,30 @@ export default function AddressAutocomplete({
         onChange={(e) => { const v = e.target.value; setQuery(v); setOpen(true); onQueryChange && onQueryChange(v) }}
         onFocus={() => setOpen(items.length > 0)}
         onKeyDown={onKeyDown}
-        className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/30 ${inputClassName}`}
+        className={`input-field w-full pl-10 ${inputClassName}`}
         role="combobox"
         aria-expanded={open}
         aria-controls="autocomplete-list"
         aria-autocomplete="list"
       />
       {open && (
-        <div ref={listRef} id="autocomplete-list" role="listbox" className={`absolute z-40 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-auto ${dropdownClassName}`}>
+        <div ref={listRef} id="autocomplete-list" role="listbox" className={`absolute z-40 mt-2 w-full surface-card border border-[var(--border-default)] rounded-xl shadow-[var(--shadow-md)] max-h-80 overflow-auto ${dropdownClassName}`}>
           {loading ? (
-            <div className="p-3 text-sm text-gray-500">Searching…</div>
+            <div className="p-3 text-sm text-[var(--text-muted)]">Searching…</div>
           ) : items.length === 0 ? (
-            <div className="p-3 text-sm text-gray-500">No matches</div>
+            <div className="p-3 text-sm text-[var(--text-muted)]">No matches</div>
           ) : (
             <ul>
               {items.map((item, i) => (
                 <li key={`${item.latitude}-${item.longitude}-${i}`} role="option" aria-selected={i===activeIndex}>
                   <button
                     onClick={() => handleSelect(item)}
-                    className={`w-full text-left px-3 py-2 flex items-start gap-2 hover:bg-gray-50 ${i===activeIndex ? 'bg-gray-50' : ''}`}
+                    className={`w-full text-left px-3 py-2 flex items-start gap-2 hover:bg-[var(--surface-hover)] ${i===activeIndex ? 'bg-[var(--surface-hover)]' : ''}`}
                   >
                     <MapPin className="w-4 h-4 text-accent mt-0.5" />
                     <div className="min-w-0">
                       <div className="text-sm font-medium leading-snug break-words" dangerouslySetInnerHTML={{ __html: item.highlightLabel || item.label }} />
-                      <div className="text-xs text-gray-500 whitespace-normal break-words">{item.subtitle || [item.locality, item.city, item.state].filter(Boolean).join(', ')}</div>
+                      <div className="text-xs text-[var(--text-muted)] whitespace-normal break-words">{item.subtitle || [item.locality, item.city, item.state].filter(Boolean).join(', ')}</div>
                     </div>
                   </button>
                 </li>

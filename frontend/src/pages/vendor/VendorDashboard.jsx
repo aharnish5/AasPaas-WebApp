@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, Link } from 'react-router-dom'
 import { Plus, Store, Eye, Star, MessageSquare, Loader2, AlertCircle } from 'lucide-react'
-import Button from '../../components/ui/Button'
 import ShopCard from '../../components/shop/ShopCard'
 import { fetchVendorShops } from '../../store/slices/shopsSlice'
 import { useAuth } from '../../hooks/useAuth'
@@ -18,6 +17,40 @@ const VendorDashboard = () => {
     totalReviews: 0,
     totalShops: 0,
   })
+
+  const getStatusAppearance = (status = '') => {
+    const key = status.toLowerCase()
+    const palette = {
+      live: {
+        background: 'color-mix(in srgb, var(--color-positive) 18%, transparent)',
+        border: '1px solid color-mix(in srgb, var(--color-positive) 36%, transparent)',
+        color: 'var(--color-positive)',
+      },
+      pending: {
+        background: 'color-mix(in srgb, var(--color-warning) 20%, transparent)',
+        border: '1px solid color-mix(in srgb, var(--color-warning) 38%, transparent)',
+        color: 'color-mix(in srgb, var(--color-warning) 88%, var(--color-text))',
+      },
+      inactive: {
+        background: 'color-mix(in srgb, var(--color-muted) 22%, transparent)',
+        border: '1px solid color-mix(in srgb, var(--color-muted) 42%, transparent)',
+        color: 'var(--color-text-muted)',
+      },
+      suspended: {
+        background: 'color-mix(in srgb, var(--color-danger) 18%, transparent)',
+        border: '1px solid color-mix(in srgb, var(--color-danger) 36%, transparent)',
+        color: 'var(--color-danger)',
+      },
+    }
+
+    return (
+      palette[key] || {
+        background: 'color-mix(in srgb, var(--color-muted) 18%, transparent)',
+        border: '1px solid color-mix(in srgb, var(--color-muted) 34%, transparent)',
+        color: 'var(--color-text-muted)',
+      }
+    )
+  }
 
   // Fetch vendor's own shops
   useEffect(() => {
@@ -50,64 +83,56 @@ const VendorDashboard = () => {
     }
   }, [shops])
 
+  const statCards = [
+    { id: 'totalShops', label: 'Total Shops', value: stats.totalShops, icon: Store },
+    { id: 'totalViews', label: 'Total Views', value: stats.totalViews, icon: Eye },
+    { id: 'avgRating', label: 'Avg Rating', value: stats.avgRating, icon: Star, formatter: (val) => val.toFixed(1) },
+    { id: 'totalReviews', label: 'Total Reviews', value: stats.totalReviews, icon: MessageSquare },
+  ]
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="container-custom py-6 space-y-8">
+      <div className="surface-card flex flex-col gap-4 rounded-3xl border border-border/60 bg-[color:var(--color-surface)]/92 p-6 shadow-[var(--shadow-sm)] md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
-          <p className="text-gray-600">Manage your shops and track performance</p>
+          <span className="badge-pill bg-primary/10 text-[color:var(--color-primary)]">Overview</span>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.02em] text-text md:text-4xl">Dashboard</h1>
+          <p className="mt-2 text-sm text-text-muted">Manage your shops and track performance</p>
         </div>
-        <Button
+        <button
+          type="button"
           onClick={() => navigate('/vendor/my-shop')}
-          className="flex items-center gap-2"
+          className="btn-gradient inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="h-4 w-4" />
           Create Shop
-        </Button>
+        </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Total Shops</p>
-            <Store className="w-5 h-5 text-accent" />
-          </div>
-          <p className="text-2xl font-bold">{stats.totalShops}</p>
-        </div>
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Total Views</p>
-            <Eye className="w-5 h-5 text-accent" />
-          </div>
-          <p className="text-2xl font-bold">{stats.totalViews}</p>
-        </div>
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Avg Rating</p>
-            <Star className="w-5 h-5 text-accent" />
-          </div>
-          <p className="text-2xl font-bold">{stats.avgRating.toFixed(1)}</p>
-        </div>
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Total Reviews</p>
-            <MessageSquare className="w-5 h-5 text-accent" />
-          </div>
-          <p className="text-2xl font-bold">{stats.totalReviews}</p>
-        </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {statCards.map((card) => {
+          const Icon = card.icon
+          const value = card.formatter ? card.formatter(card.value) : card.value
+          return (
+            <div key={card.id} className="card">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted/80">{card.label}</p>
+                <Icon className="h-5 w-5 text-[color:var(--color-primary)]" />
+              </div>
+              <p className="mt-4 text-3xl font-semibold text-text">{value}</p>
+            </div>
+          )
+        })}
       </div>
 
-      {/* My Shops Section */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold">My Shops</h2>
+      <div className="card space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold text-text">My Shops</h2>
           {shops && shops.length > 0 && (
             <Link
               to="/vendor/my-shop"
-              className="text-sm text-accent hover:underline flex items-center gap-1"
+              className="surface-pill inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-primary)] hover:text-[color:var(--color-primary)]/80"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
               Add New Shop
             </Link>
           )}
@@ -115,59 +140,64 @@ const VendorDashboard = () => {
 
         {loading && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-accent" />
+            <Loader2 className="h-8 w-8 animate-spin text-[color:var(--color-primary)]" />
           </div>
         )}
 
         {error && (
-          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-            <p className="text-red-800">{error}</p>
+          <div className="alert alert-danger space-y-2">
+            <p className="alert-title flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              Issue detected
+            </p>
+            <p className="alert-description">{error}</p>
           </div>
         )}
 
         {!loading && !error && (!shops || shops.length === 0) && (
-          <div className="text-center py-12">
-            <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No shops yet</h3>
-            <p className="text-gray-600 mb-6">Create your first shop to start reaching customers</p>
-            <Button onClick={() => navigate('/vendor/my-shop')}>
-              <Plus className="w-5 h-5 mr-2" />
+          <div className="surface-card flex flex-col items-center gap-4 rounded-3xl px-6 py-12 text-center shadow-[var(--shadow-sm)]">
+            <Store className="h-16 w-16 text-[color:var(--color-primary)]" style={{ opacity: 0.28 }} />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-text">No shops yet</h3>
+              <p className="text-sm text-text-muted">Create your first shop to start reaching customers.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/vendor/my-shop')}
+              className="btn-gradient inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]"
+            >
+              <Plus className="h-4 w-4" />
               Create Your First Shop
-            </Button>
+            </button>
           </div>
         )}
 
         {!loading && !error && shops && shops.length > 0 && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {shops.map((shop) => (
-              <div key={shop._id} className="relative">
-                <ShopCard shop={shop} />
-                <div className="mt-2 flex items-center gap-2">
-                  <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      shop.status === 'live'
-                        ? 'bg-green-100 text-green-800'
-                        : shop.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {shop.status}
-                  </span>
-                  {shop.views > 0 && (
-                    <span className="text-xs text-gray-500">
-                      {shop.views} {shop.views === 1 ? 'view' : 'views'}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {shops.map((shop) => {
+              const statusAppearance = getStatusAppearance(shop.status)
+              return (
+                <div key={shop._id} className="relative">
+                  <ShopCard shop={shop} />
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span
+                      className="status-pill capitalize"
+                      style={statusAppearance}
+                    >
+                      {shop.status || 'pending'}
                     </span>
-                  )}
+                    {shop.views > 0 && (
+                      <span className="text-xs font-medium text-text-muted">
+                        {shop.views} {shop.views === 1 ? 'view' : 'views'}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
-
-      {/* Removed placeholder Recent Reviews section */}
     </div>
   )
 }

@@ -6,15 +6,6 @@ import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../../utils/cn'
 
 const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChange }) => {
-  if (!shop) return null
-
-  // Prefer first stored image URL; fallback chain to placeholder
-  const mainImage = (shop.images && shop.images.length > 0 && shop.images[0].url) 
-    ? shop.images[0].url 
-    : 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop'
-  const rating = shop.ratings?.avg || 0
-  const reviewCount = shop.ratings?.count || 0
-
   const { isAuthenticated, role } = useAuth()
   const [favorited, setFavorited] = useState(false)
   const [checkingFav, setCheckingFav] = useState(true)
@@ -22,9 +13,10 @@ const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChang
   // Initialize favorited state (when card appears in favorites page or general list)
   useEffect(() => {
     let mounted = true
-    if (isAuthenticated && role === 'customer') {
-      favoritesAPI.isFavorited(shop._id)
-        .then(r => {
+    if (shop && isAuthenticated && role === 'customer') {
+      favoritesAPI
+        .isFavorited(shop._id)
+        .then((r) => {
           if (mounted) setFavorited(!!r.data.favorited)
         })
         .catch(() => {})
@@ -32,8 +24,19 @@ const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChang
     } else {
       setCheckingFav(false)
     }
-    return () => { mounted = false }
-  }, [shop._id, isAuthenticated, role])
+    return () => {
+      mounted = false
+    }
+  }, [shop, isAuthenticated, role])
+
+  if (!shop) return null
+
+  // Prefer first stored image URL; fallback chain to placeholder
+  const mainImage = shop.images && shop.images.length > 0 && shop.images[0].url
+    ? shop.images[0].url
+    : 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop'
+  const rating = shop.ratings?.avg || 0
+  const reviewCount = shop.ratings?.count || 0
 
   const onToggleFavorite = async (e) => {
     e.preventDefault()
@@ -63,66 +66,82 @@ const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChang
       to={`/shop/${shop._id}`}
       onClick={onClick}
       className={cn(
-        'card group hover:shadow-xl transition-all duration-200 hover:-translate-y-1',
-        compact && 'p-4'
+        'surface-card group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-[color:var(--color-surface)]/85 shadow-[var(--shadow-sm)] backdrop-blur transition-transform duration-200 hover:-translate-y-[6px] hover:shadow-[var(--shadow-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        compact ? 'pb-4' : 'pb-5'
       )}
     >
-      {/* Image */}
-      <div className="relative aspect-[4/3] rounded-lg overflow-hidden mb-4 bg-gray-200">
+      <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={mainImage}
           alt={shop.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+          className="h-full w-full object-cover transition-transform duration-300 ease-[var(--ease-emphasized)] group-hover:scale-105"
           loading="lazy"
           onError={(e) => {
-            // Ensure a consistent fallback if original image fails
             if (e.target.src !== 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop') {
               e.target.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop'
             }
           }}
         />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(15,21,40,0.75)] via-[rgba(15,21,40,0.25)] to-transparent" />
+
+        {shop.category && (
+          <div className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full border border-white/50 bg-white/80 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-primary shadow-sm backdrop-blur">
+            {shop.category}
+          </div>
+        )}
+
         {distanceKm !== undefined && (
-          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1">
-            <MapPin className="w-3 h-3" />
+          <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-white/40 bg-white/80 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-text shadow-sm backdrop-blur">
+            <MapPin className="h-3.5 w-3.5" />
             {distanceKm.toFixed(1)} km
           </div>
         )}
+
+        <button
+          onClick={onToggleFavorite}
+          disabled={checkingFav}
+          className="absolute right-4 bottom-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/40 bg-white/75 text-danger shadow-sm transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+          aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+          title={favorited ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Heart className={cn('h-5 w-5 transition-colors', favorited ? 'fill-danger text-danger' : 'text-danger/60')} />
+        </button>
       </div>
 
-      {/* Content */}
-      <div>
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="text-lg font-semibold line-clamp-1">{shop.name}</h3>
-          <button
-            onClick={onToggleFavorite}
-            disabled={checkingFav}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40"
-            aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
-            title={favorited ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <Heart className={`w-5 h-5 ${favorited ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
-          </button>
+      <div className={cn('flex flex-grow flex-col gap-3 px-5 pt-5', compact && 'px-4 pt-4')}>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-lg font-semibold leading-tight text-text">
+            <span className="line-clamp-1">{shop.name}</span>
+          </h3>
+          {typeof shop.favoritesCount === 'number' && (
+            <span className="badge-pill bg-accent/15 text-accent">
+              {shop.favoritesCount} likes
+            </span>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-primary">
+            <Star className="h-3.5 w-3.5 fill-current" />
+            <span className="font-semibold">{rating.toFixed(1)}</span>
+            <span className="text-[0.7rem] uppercase tracking-[0.12em] text-primary/70">
+              ({reviewCount} reviews)
+            </span>
           </div>
-          <span className="text-sm text-gray-500">({reviewCount} reviews)</span>
-          {typeof shop.favoritesCount === 'number' && (
-            <span className="text-xs text-gray-500">• {shop.favoritesCount} favorites</span>
-          )}
-          {shop.category && (
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-              {shop.category}
+          {shop.priceRange && (
+            <span className="status-pill bg-secondary/15 text-secondary">
+              {shop.priceRange === 'low'
+                ? 'Budget'
+                : shop.priceRange === 'medium'
+                ? 'Moderate'
+                : 'Premium'}
             </span>
           )}
         </div>
 
         {(shop.address?.locality || shop.address?.city) && (
-          <p className="text-sm text-gray-600 flex items-center gap-1">
-            <MapPin className="w-4 h-4" />
+          <p className="flex items-center gap-2 text-sm text-text-muted">
+            <MapPin className="h-4 w-4 text-primary" />
             {shop.address?.locality ? (
               <span>{shop.address.locality}{shop.address.city ? `, ${shop.address.city}` : ''}</span>
             ) : (
@@ -131,33 +150,33 @@ const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChang
           </p>
         )}
 
-        {/* Quick Links: Open in Maps / Directions */}
         {Array.isArray(shop.location?.coordinates) && shop.location.coordinates.length === 2 && (
           (() => {
             const [lon, lat] = shop.location.coordinates
             const openUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
             const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`
-            // Only stop propagation so the surrounding Link doesn't trigger; allow default anchor behavior for new tab.
-            const stopPropagationOnly = (e) => { e.stopPropagation(); }
+            const stopPropagationOnly = (event) => {
+              event.stopPropagation()
+            }
             return (
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-auto flex flex-wrap gap-2 pt-2">
                 <a
                   href={openUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={stopPropagationOnly}
-                  className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-400 focus:ring-offset-1"
+                  className="surface-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-primary"
                   aria-label={`Open ${shop.name} in Google Maps (opens in new tab)`}
                   title="Open in Google Maps"
                 >
-                  Open in Google Maps
+                  Explore
                 </a>
                 <a
                   href={dirUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={stopPropagationOnly}
-                  className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring focus:ring-indigo-400 focus:ring-offset-1"
+                  className="btn-gradient inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em]"
                   aria-label={`Get directions to ${shop.name} (opens in new tab)`}
                   title="Get Directions"
                 >

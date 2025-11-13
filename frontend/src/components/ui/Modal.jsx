@@ -4,7 +4,8 @@ import { cn } from '../../utils/cn'
 
 const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   useEffect(() => {
-    if (isOpen) {
+    const hasDocument = typeof document !== 'undefined'
+    if (isOpen && hasDocument) {
       document.body.style.overflow = 'hidden'
       // Trap focus
       const modal = document.querySelector('[role="dialog"]')
@@ -12,11 +13,11 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
         const focusableElements = modal.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         )
-        if (focusableElements.length > 0) {
+        if (focusableElements.length > 0 && focusableElements[0] instanceof HTMLElement) {
           focusableElements[0].focus()
         }
       }
-    } else {
+    } else if (hasDocument) {
       document.body.style.overflow = 'unset'
     }
 
@@ -26,10 +27,10 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
       }
     }
 
-    document.addEventListener('keydown', handleEscape)
+    hasDocument && document.addEventListener('keydown', handleEscape)
     return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
+      hasDocument && document.removeEventListener('keydown', handleEscape)
+      if (hasDocument) document.body.style.overflow = 'unset'
     }
   }, [isOpen, onClose])
 
@@ -52,20 +53,21 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     >
       <div
         className={cn(
-          'bg-white rounded-xl shadow-xl w-full',
+          'surface-card text-[var(--text-primary)] border border-[var(--border-default)] rounded-xl shadow-xl w-full outline-none',
           sizes[size],
           'animate-in fade-in zoom-in-95 duration-200'
         )}
         onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
       >
         {title && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-[var(--border-default)]">
             <h2 id="modal-title" className="text-xl font-semibold">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors hover:bg-[var(--surface-hover)]"
               aria-label="Close modal"
             >
               <X className="w-5 h-5" />
