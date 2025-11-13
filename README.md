@@ -20,11 +20,11 @@ AasPaas makes local businesses **discoverable, reviewable, and reachable** with 
 
 | Page                        | Preview                                                      |
 | --------------------------- | ------------------------------------------------------------ |
-| 🏠 **Home / Search**        | `![Home](docs/screenshots/home.png)`                         |
-| 🏪 **Shop Detail with Map** | `![Shop Detail](screenshots/shop-detail.png)`           |
-| 🧑‍🔧 **Vendor Dashboard**  | `![Vendor Dashboard](screenshots/vendor-dashboard.png)` |
-| ⭐ **Reviews & Favorites**   | `![Favorites](screenshots/favorites.png)`               |
-| 🌙 **Dark Mode**            | `![Dark](screenshots/dark-mode.png)`                    |
+| 🏠 **Home / Search**        | ![Home](docs/screenshots/home.png)                         |
+| 🏪 **Shop Detail with Map** | ![Shop Detail](screenshots/shop-detail.png)           |
+| 🧑‍🔧 **Vendor Dashboard**  | ![Vendor Dashboard](screenshots/vendor-dashboard.png) |
+| ⭐ **Reviews & Favorites**   | ![Favorites](screenshots/favorites.png)               |
+| 🌙 **Dark Mode**            | ![Dark](screenshots/dark-mode.png)                    |
 
 ---
 
