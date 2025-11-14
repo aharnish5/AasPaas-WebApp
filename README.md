@@ -248,6 +248,84 @@ npm run seed
 
 ---
 
+# 📷 **Persistent Image Storage – Cloudinary Integration**
+
+To prevent shop images from resetting to a default on Render redeploys, all new uploads are now stored in **Cloudinary** (CDN + persistent storage). The application automatically prefers Cloudinary if its credentials are present; otherwise it falls back to S3 (if configured) or ephemeral local storage (development only).
+
+## ✅ What Changed
+* Images are uploaded with `uploadImage()` via Cloudinary when `CLOUDINARY_*` env vars are set.
+* Shop image records now include optional `publicId` for future transformations & deletion.
+* Moving images from a temporary "pending" location into `shops/<shopId>` now uses Cloudinary rename instead of filesystem/object copy.
+
+## 🔐 Required Environment Variables (Backend)
+Add these to Render dashboard or `backend/.env`:
+```env
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+# Optional folder prefix for organizational purposes
+CLOUDINARY_FOLDER=shops
+```
+
+Do NOT commit real secrets. The frontend never receives API secret values.
+
+## 🖼 Rendering Images
+Use the stored `image.url` directly. You may append Cloudinary transformation segments on demand (e.g. thumbnail vs hero):
+```
+https://res.cloudinary.com/<cloud>/image/upload/w_300,h_300,c_fill,q_auto,f_auto/<publicId>
+```
+Fallback: If `image.url` missing/invalid, render a graceful placeholder (e.g. a patterned SVG or themed default).
+
+---
+
+# 🛠 **Migration: Local/S3 → Cloudinary**
+
+Existing shops pointing to local `/uploads/...` or S3 URLs can be migrated automatically.
+
+## Modes
+| Mode     | Env | Behavior |
+| -------- | --- | -------- |
+| Dry Run  | `DRY_RUN=true` | Logs intended migrations without uploading or modifying DB |
+| Full Run | (omit DRY_RUN) | Uploads legacy images to Cloudinary and updates `shop.images[].url` + `publicId` |
+
+## Run Migration
+```bash
+cd backend
+# Dry run first
+DRY_RUN=true node src/scripts/migrateShopImagesCloudinary.js
+# Execute for real
+node src/scripts/migrateShopImagesCloudinary.js
+```
+
+## Idempotency & Safety
+* Already-migrated (Cloudinary) URLs are skipped.
+* Missing legacy files are logged and left unchanged; you can notify vendors manually.
+* Script can be re-run safely after partial failures.
+
+## Rollback Strategy
+If you need to revert a problematic migration:
+1. Restore MongoDB from backup (recommended pre-migration step).
+2. Or selectively edit affected shop documents reverting `images[].url` to previous value (if still accessible).
+3. Optionally delete newly uploaded Cloudinary assets via dashboard using `publicId`.
+
+## Monitoring
+The migration logs to standard output via winston. For production, aggregate logs (e.g. Render log stream) and search for `[migrate]` tags.
+
+---
+
+# 📘 **Cloudinary Runbook (Summary)**
+1. Set env vars in staging.
+2. Deploy backend.
+3. Run dry-run migration; review counts.
+4. Run full migration; verify sample shops.
+5. Update frontend to ensure it uses `shop.images[0].url` (already implemented).
+6. Promote to production; repeat dry-run/full-run.
+7. Remove any obsolete local `uploads/` volumes from Render settings.
+
+---
+
+---
+
 # 🚢 **Deployment**
 
 AasPaas supports:

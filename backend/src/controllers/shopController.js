@@ -35,6 +35,7 @@ export const uploadShopImage = async (req, res, next) => {
       uploadId,
       imageUrl: uploadResult.url,
       imageKey: uploadResult.key,
+      publicId: uploadResult.publicId || undefined,
       createdAt: new Date(),
     });
     logger.info(`OCR processed for uploadId: ${uploadId} method=${ocrData.ocrMethod} error=${ocrData.ocrError || 'none'}`);
@@ -43,6 +44,7 @@ export const uploadShopImage = async (req, res, next) => {
       uploadId,
       tempUrl: uploadResult.url,
       imageKey: uploadResult.key,
+      publicId: uploadResult.publicId || null,
     });
   } catch (error) {
     next(error);
@@ -67,6 +69,7 @@ export const inferFromImage = async (req, res, next) => {
       uploadId,
       imageUrl: uploadResult.url,
       imageKey: uploadResult.key,
+      publicId: uploadResult.publicId || undefined,
       createdAt: new Date(),
     });
 
@@ -99,6 +102,7 @@ export const inferFromImage = async (req, res, next) => {
       uploadId,
       tempUrl: uploadResult.url,
       imageKey: uploadResult.key,
+      publicId: uploadResult.publicId || null,
       ai: aiResult,
       error: ai.success ? undefined : (ai.error || 'Inference unavailable'),
     });
@@ -282,6 +286,7 @@ export const createShop = async (req, res, next) => {
             url: movedImage.url,
             caption: '',
             uploadedBy: req.userId,
+            publicId: movedImage.publicId || ocrResult.publicId || undefined,
           });
         } catch (e) {
           logger.error(`[createShop] Failed to move pending image ${uploadId}:`, e);
@@ -774,6 +779,7 @@ export const addShopImage = async (req, res, next) => {
       url: uploadResult.url,
       caption: req.body.caption || '',
       uploadedBy: req.userId,
+      publicId: uploadResult.publicId || undefined,
     });
 
     await shop.save();

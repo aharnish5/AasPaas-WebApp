@@ -32,9 +32,24 @@ const ShopCard = ({ shop, distanceKm, onClick, compact = false, onFavoritedChang
   if (!shop) return null
 
   // Prefer first stored image URL; fallback chain to placeholder
-  const mainImage = shop.images && shop.images.length > 0 && shop.images[0].url
+  const rawImage = shop.images && shop.images.length > 0 && shop.images[0].url
     ? shop.images[0].url
     : 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop'
+
+  const buildCloudinaryVariant = (url) => {
+    if (!url || !/res\.cloudinary\.com\//.test(url)) return url
+    // Insert basic transformation for card thumbnails (lazy loaded)
+    // Pattern: https://res.cloudinary.com/<cloud>/image/upload/<transform>/<publicId>
+    // If a transformation segment already exists we skip
+    const parts = url.split('/image/upload/')
+    if (parts.length !== 2) return url
+    const [prefix, suffix] = parts
+    if (/w_\d+/.test(suffix)) return url // already transformed
+    const transform = 'w_600,h_450,c_fill,q_auto,f_auto'
+    return `${prefix}/image/upload/${transform}/${suffix}`
+  }
+
+  const mainImage = buildCloudinaryVariant(rawImage)
   const rating = shop.ratings?.avg || 0
   const reviewCount = shop.ratings?.count || 0
 

@@ -23,6 +23,7 @@
   "dependencies": {
     "aas-paas-backend": "file:",
     "aws-sdk": "^2.1501.0",
+    "cloudinary": "^1.41.3",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.2.2",

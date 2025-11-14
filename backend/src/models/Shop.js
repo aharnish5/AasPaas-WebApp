@@ -80,6 +80,11 @@ const shopSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
+        // Optional Cloudinary public identifier (enables future delete/transform operations).
+        publicId: {
+          type: String,
+          required: false,
+        },
         caption: {
           type: String,
           default: '',
