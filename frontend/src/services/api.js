@@ -32,9 +32,13 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || '';
+    const isAuthRequest = requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/signup') ||
+      requestUrl.includes('/auth/refresh');
 
     // If 401 and not already retried, try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !isAuthRequest && !originalRequest?._retry) {
       originalRequest._retry = true;
 
       try {
@@ -54,7 +58,7 @@ api.interceptors.response.use(
         if (window.location.pathname.startsWith('/customer') || window.location.pathname.startsWith('/vendor')) {
           window.location.href = '/login/customer';
         }
-        return Promise.reject(refreshError);
+        return Promise.reject(error);
       }
     }
 

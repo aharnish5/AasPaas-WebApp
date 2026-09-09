@@ -210,7 +210,9 @@ To enable the "Autofill from Photo" feature, add the following:
 # Google Generative Language API
 GEMINI_API_KEY=your_google_generative_language_api_key
 # Optional: override model
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-3.6-flash
+# Optional: request timeout in milliseconds
+GEMINI_TIMEOUT_MS=60000
 ```
 
 Notes:

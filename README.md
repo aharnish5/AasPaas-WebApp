@@ -187,7 +187,7 @@ REDIS_URL=redis://localhost:6379
 GOOGLE_VISION_ENABLED=false
 MAPPLE_API_KEY=your-mappls-key
 GEMINI_API_KEY=your-gemini-key
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-3.6-flash
 ```
 
 Run backend:

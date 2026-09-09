@@ -13,6 +13,7 @@
   "moduleResolution": "Bundler",
   "allowImportingTsExtensions": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@radix-ui/react-dialog": ["node_modules/@radix-ui/react-dialog/dist/index.d.ts"],
       "@radix-ui/react-dropdown-menu": ["node_modules/@radix-ui/react-dropdown-menu/dist/index.d.ts"],

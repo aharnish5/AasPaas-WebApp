@@ -49,6 +49,7 @@
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
+    "baseline-browser-mapping": "^2.11.21",
     "playwright": "^1.41.2",
     "postcss": "^8.4.32",
     "prettier": "^3.2.5",
